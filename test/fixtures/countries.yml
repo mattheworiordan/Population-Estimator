@@ -1,0 +1,15 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+gb:
+  name: Great Britain
+  country_code: gb
+  population: 100
+  density_per_sq_km: 1.5
+  source_update_date: 2010-01-03
+
+ireland:
+  name: Ireland
+  country_code: ie
+  population: 50
+  density_per_sq_km: 1.5
+  source_update_date: 2010-01-03

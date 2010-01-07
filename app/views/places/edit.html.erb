@@ -1,0 +1,40 @@
+<h1>Editing create_place</h1>
+
+<% form_for(@create_place) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :name %><br />
+    <%= f.text_field :name %>
+  </p>
+  <p>
+    <%= f.label :abbreviation %><br />
+    <%= f.text_field :abbreviation %>
+  </p>
+  <p>
+    <%= f.label :population %><br />
+    <%= f.text_field :population %>
+  </p>
+  <p>
+    <%= f.label :place_type %><br />
+    <%= f.text_field :place_type %>
+  </p>
+  <p>
+    <%= f.label :area_km_sq %><br />
+    <%= f.text_field :area_km_sq %>
+  </p>
+  <p>
+    <%= f.label :created_at %><br />
+    <%= f.datetime_select :created_at %>
+  </p>
+  <p>
+    <%= f.label :updated_at %><br />
+    <%= f.datetime_select :updated_at %>
+  </p>
+  <p>
+    <%= f.submit 'Update' %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @create_place %> |
+<%= link_to 'Back', create_places_path %>

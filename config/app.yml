@@ -1,0 +1,13 @@
+common: &common
+  verbose_logging: false
+  
+production:
+  <<: *common
+
+development:
+  <<: *common
+  verbose_logging: true
+
+test:
+  <<: *common
+  verbose_logging: true

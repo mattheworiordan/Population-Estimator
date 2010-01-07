@@ -1,0 +1,43 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+england:
+  name: England
+  abbreviation: ENG
+  population: 1000
+  place_type: state
+  area_km_sq: 5000
+  country: gb
+
+wales:
+  name: Wales
+  abbreviation: WAL
+  population: 1000
+  place_type: state
+  area_km_sq: 5000
+  country: gb
+  
+york:
+  name: York
+  abbreviation: YOR
+  population: 100
+  place_type: county
+  area_km_sq: 300
+  ancestry: <%= Fixtures.identify(:england) %>
+  country: gb
+  
+yorkcity:
+  name: York
+  abbreviation: YOR
+  population: 10
+  place_type: city
+  area_km_sq: 20
+  ancestry: <%= Fixtures.identify(:england) %>/<%= Fixtures.identify(:york) %>
+  country: gb
+
+harrogate:
+  name: Harrogate
+  population: 1
+  place_type: borough
+  area_km_sq: 1
+  ancestry: <%= Fixtures.identify(:england) %>/<%= Fixtures.identify(:york) %>/<%= Fixtures.identify(:yorkcity) %>
+  country: gb

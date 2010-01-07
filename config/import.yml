@@ -1,0 +1,131 @@
+common: &common
+  place_column_defaults:
+    name: 
+      - /name/
+      - ":first"
+    abbreviation:
+      - /abbr/
+    parent_identifier:
+      - /adm/
+      - /adm\./
+      - /county.*district/
+      - /council.*area/
+    population:
+      - ":last"
+    place_type:
+      - /status/
+    area_km_sq:
+      - /A \(km.+\)/    
+  
+  country_list: http://world.bymap.org/Population.html
+  
+  gb_england_cities_london_name: London
+  gb_england_abbreviation: ENG
+  gb_northern_ireland_abbreviation: NIR
+  gb_scotland_abbreviation: SCO
+  gb_wales_abbreviation: WAL
+    
+  gb_states:
+    url: UK-Cities.html
+    data_source: adminareas
+  gb_england_counties: 
+    url: UK-England.html
+    data_source: adminareas
+  gb_england_cities: 
+    url: UK-England.html
+    data_source: cities
+  gb_england_cities_london_boroughs:
+    url: UK-London.html
+    data_source: cities
+  gb_england_cities_london_boroughs_and_urban_areas:
+    url: php/uk-england-london.php
+    data_source: ts
+  
+  gb_england_region_default: &gb_england_region_default
+    county_data_source: tl
+    city_data_source: ts
+  gb_england_regions:
+    - 
+      <<: *gb_england_region_default
+      name: East Midlands
+      url: php/uk-england-eastmidlands.php
+    -
+      <<: *gb_england_region_default
+      name: East England
+      url: php/uk-england-eastofengland.php
+    -
+      <<: *gb_england_region_default
+      name: North East England
+      url: php/uk-england-northeastengland.php
+    -
+      <<: *gb_england_region_default
+      name: North West England
+      url: php/uk-england-northwestengland.php
+    -
+      <<: *gb_england_region_default
+      name: South West England
+      url: php/uk-england-southwestengland.php
+    -
+      <<: *gb_england_region_default
+      name: West Midlands
+      url: php/uk-england-westmidlands.php
+    -
+      <<: *gb_england_region_default
+      name: South East England
+      url: php/uk-england-southeastengland.php
+    -
+      <<: *gb_england_region_default
+      name: Yorkshire and Humber
+      url: php/uk-england-yorkshireandthehumber.php
+  
+  gb_northern_ireland_cities:
+    url: UK-NorthernIreland.html
+    data_source: cities 
+  
+  gb_scotland_counties_major:
+    url: UK-Scotland.html
+    data_source: adminareas
+  gb_scotland_cities_major:
+    url: UK-Scotland.html
+    data_source: cities
+  gb_scotland_counties_minor:
+    url: php/uk-scotland.php
+    data_source: tl
+  gb_scotland_cities_minor:
+    url: php/uk-scotland.php
+    data_source: ts
+    
+  gb_wales_counties_major:
+    url: UK-Wales.html
+    data_source: adminareas
+  gb_wales_cities_major:
+    url: UK-Wales.html
+    data_source: cities
+  gb_wales_counties_minor:
+    url: php/uk-wales.php
+    data_source: tl
+  gb_wales_cities_minor:
+    url: php/uk-wales.php
+    data_source: ts
+    
+  ie_counties:
+    url: Ireland-Cities.html
+    data_source: adminareas
+  ie_cities:
+    url: Ireland-Cities.html
+    data_source: cities
+  ie_counties_agglomerations:
+    url: Ireland-Agglo.html
+    data_source: adminareas
+  ie_cities_agglomerations:
+    url: Ireland-Agglo.html
+    data_source: cities
+
+production:
+  <<: *common
+
+development:
+  <<: *common
+
+test:
+  <<: *common

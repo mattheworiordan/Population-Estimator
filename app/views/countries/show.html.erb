@@ -1,0 +1,33 @@
+<p>
+  <b>Full name:</b>
+  <%=h @country.full_name %>
+</p>
+
+<p>
+  <b>Population:</b>
+  <%=h @country.population %>
+</p>
+
+<p>
+  <b>Density per sq km:</b>
+  <%=h @country.density_per_sq_km %>
+</p>
+
+<p>
+  <b>Source update date:</b>
+  <%=h @country.source_update_date %>
+</p>
+
+<p>
+  <b>Created at:</b>
+  <%=h @country.created_at %>
+</p>
+
+<p>
+  <b>Updated at:</b>
+  <%=h @country.updated_at %>
+</p>
+
+
+<%= link_to 'Edit', edit_country_path(@country) %> |
+<%= link_to 'Back', countries_path %>
