@@ -1,0 +1,5 @@
+Population Estimator To Do list
+
+* TODO: GeoIP lookup http://mobiforge.com/forum/developing/location/retrieve-latlong-google-geolocation-and-calculate-radius
+* TODO: Show all data in tree so that Matt can see and we can work out what to do with it...
+* TODO: Consider adding batches to the import so a clean up can be done after import?

@@ -1,4 +1,5 @@
 common: &common
+  google_api_key: ABQIAAAAdJDpHOm2ScdjgUWKqN4KjBQaCoiz7kHbPYNoCNHTGcAwLJhMgBR8qrqyrFXo1Mjrdp3x6JTugklIXQ
   verbose_logging: false
   
 production:

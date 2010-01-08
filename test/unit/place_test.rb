@@ -57,6 +57,9 @@ class PlaceTest < ActiveSupport::TestCase
     assert(Place.boroughs.first.place_type == PlaceType::Borough, "First borough is not a borough")    
     
     assert(Place.cities_and_boroughs.count == Place.boroughs.count + Place.cities.count, "Count of cities and boroughs is not matching")
+    assert(Place.counties_cities_and_boroughs.count == Place.counties.count + Place.boroughs.count + Place.cities.count, "Count of counties, cities & boroughs not matching")
+    
+    assert(Place.without_lat_long.first.latitude == nil, "Named scope for without lat long failed")
   end
   
   test "ensure finders for name and abbreviation are case insensitive" do
@@ -76,5 +79,25 @@ class PlaceTest < ActiveSupport::TestCase
     should_be_city = Place.new(:name => "WonkaCity", :population => 20, :country => @gb, :place_type => PlaceType::Borough)
     assert(should_be_city.save, "Could not save test should_be_city #{should_be_city.errors.full_messages.to_sentence}")
     assert(should_be_city.place_type == PlaceType::City, "A borough without a city parent should be set to city")
+  end
+  
+  test "that place validates latitude and longitude" do
+    wales = places(:wales)
+    wales.latitude = wales.longitude = nil
+    
+    assert(wales.save, "With both lat & long nil Wales should be able to be saved #{wales.errors.full_messages.to_sentence}")
+    
+    wales.latitude = "not a number"
+    assert(!wales.save, "Latitude is not a number so this should not have saved")
+    
+    wales.latitude = nil
+    wales.longitude = "not a number"
+    assert(!wales.save, "Longitude is not a number so this should not have saved")
+    
+    wales.longitude = 51.232
+    assert(!wales.save, "Lat is null but long is a number so this should fail")
+    
+    wales.latitude = 23.232
+    assert(wales.save, "Lat & long are valid so Wales should be able to be saved #{wales.errors.full_messages.to_sentence}")
   end
 end

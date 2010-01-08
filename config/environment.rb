@@ -6,19 +6,22 @@ RAILS_GEM_VERSION = '2.3.4' unless defined? RAILS_GEM_VERSION
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
 
-# TODO: Decide on using Nokogiri or not
-
 # needed for all retrieval of external data
 require 'open-uri'
 # require 'hpricot'
 require 'nokogiri'
+
+# time parsing
 require 'chronic'
 require 'ostruct'
 
+# geocoding
+require 'graticule'
+
+# my libraries
 require 'number_formatter'
 require 'slogger'
-
-require 'import_places.rb'
+require 'geocode_places'
 
 Rails::Initializer.run do |config|
   # Settings in config/environments/* take precedence over those specified here.
@@ -29,15 +32,13 @@ Rails::Initializer.run do |config|
   # config.load_paths += %W( #{RAILS_ROOT}/extras )
 
   # Specify gems that this application depends on and have them installed with rake gems:install
-  # config.gem "bj"
-  # config.gem "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
-  # config.gem "sqlite3-ruby", :lib => "sqlite3"
-  # config.gem "aws-s3", :lib => "aws/s3"
   config.gem 'ancestry'
   config.gem 'chronic'
   # config.gem 'hpricot'  
   config.gem 'nokogiri'
   config.gem 'exceptional', :version => '2.0.0'
+  config.gem 'happymapper'
+  config.gem 'graticule'
 
   # Only load the plugins named here, in the order given (default is alphabetical).
   # :all can be used as a placeholder for all plugins not explicitly named

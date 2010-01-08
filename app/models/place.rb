@@ -1,15 +1,18 @@
 class Place < ActiveRecord::Base
-  
-  validates_presence_of :name, :population, :country_id, :place_type
   belongs_to :country
   acts_as_tree
+  
+  validates_presence_of :name, :population, :country_id, :place_type
+  validates_numericality_of :latitude, :longitude, :unless => Proc.new { |place| place.latitude.nil? && place.longitude.nil? }
   
   named_scope :in_country_code, lambda { |country_code| { :include => [ :country ], :conditions => [ "countries.country_code LIKE ?", country_code ] } }
   named_scope :states, { :conditions => { :place_type => PlaceType::State } } 
   named_scope :counties, { :conditions => { :place_type => PlaceType::County } } 
   named_scope :cities, { :conditions => { :place_type => PlaceType::City } } 
-  named_scope :cities_and_boroughs, { :conditions => { :place_type => [PlaceType::City, PlaceType::Borough] } }
   named_scope :boroughs, { :conditions => { :place_type => PlaceType::Borough } } 
+  named_scope :cities_and_boroughs, { :conditions => { :place_type => [PlaceType::City, PlaceType::Borough] } }
+  named_scope :counties_cities_and_boroughs, { :conditions => { :place_type => [PlaceType::City, PlaceType::Borough, PlaceType::County] } }
+  named_scope :without_lat_long, { :conditions => "latitude is null OR longitude is null"}
   
   # override default finders to make them case insensitive
   def self.find_by_name (*args) find(:first, { :conditions => [ "places.name like ?", args[0] ] }, *args.from(1)); end
@@ -25,8 +28,9 @@ class Place < ActiveRecord::Base
     end
   end
   
-  # todo: Need to figure out how I deal with parent nodes, matching them when searching etc.
-  # parents can container either a hash of parents (i.e. multiple counties) with or contains a single parent (one city / country etc)
+  # Parents can container either a hash of parents (i.e. multiple counties) with or contains a single parent (one city / country etc)
+  #--
+  # TODO: Need to figure out how I deal with parent nodes, matching them when searching etc.
   def self.add_update_places_from_imported_places(imported_places, country, place_type, parents = nil)
     imported_places.each do |imported_place|
       place = nil

@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100106151516) do
+ActiveRecord::Schema.define(:version => 20100108023504) do
 
   create_table "countries", :force => true do |t|
     t.string   "name"
@@ -31,10 +31,14 @@ ActiveRecord::Schema.define(:version => 20100106151516) do
     t.datetime "updated_at"
     t.string   "ancestry"
     t.integer  "country_id"
+    t.float    "latitude"
+    t.float    "longitude"
   end
 
   add_index "places", ["abbreviation"], :name => "index_places_on_abbreviation"
   add_index "places", ["ancestry"], :name => "index_places_on_ancestry"
+  add_index "places", ["latitude"], :name => "index_places_on_latitude"
+  add_index "places", ["longitude"], :name => "index_places_on_longitude"
   add_index "places", ["name"], :name => "index_places_on_name"
 
 end
