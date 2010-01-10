@@ -1,0 +1,33 @@
+= Population Estimator
+
+== Overview
+
+Whilst trying to figure out how many people lived within X miles of a city or place, I discovered that there really is no easy way to do this.
+
+This little application aims to solve this problem by obtaining data about populations for countries, states, cities and other areas from public sources, geocoding this, and allowing this data to be used to estimate the number of people within an areea.
+
+== Features
+
+* Imports data from GB, IE and BE using rake tasks.  Other areas to be added.
+
+== Dependencies
+
+Lots, check environment.rb for complete list.
+
+== Setup
+
+This is a standard Rails application.
+
+== Database
+
+Can use any database that ActiveRecord supports.  All data is populated using rake import:* tasks.
+
+== Meta
+
+Written by Matthew O'Riordan, http://mattheworiordan.com
+Algorithms for calculating populations by Matthew Whiteley 
+
+Released under the MIT License: http://www.opensource.org/licenses/mit-license.php
+
+http://github.com/mattheworiordan/population-estimator
+
