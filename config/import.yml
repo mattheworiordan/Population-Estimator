@@ -10,6 +10,7 @@ common: &common
       - /adm\./
       - /county.*district/
       - /council.*area/
+      - /district/
     population:
       - ":last"
     place_type:
@@ -18,6 +19,7 @@ common: &common
       - /A \(km.+\)/    
   
   country_list: http://world.bymap.org/Population.html
+  city_population_url: http://www.citypopulation.de/
   
   gb_england_cities_london_name: London
   gb_england_abbreviation: ENG
@@ -120,7 +122,20 @@ common: &common
   ie_cities_agglomerations:
     url: Ireland-Agglo.html
     data_source: cities
-
+    
+  be_counties:
+    url: Belgium-Agglo.html
+    data_source: adminareas
+  be_counties_agglomerations:
+    url: Belgium-Mun.html
+    data_source: adminareas
+  be_provinces_list: 
+    css_selector: div.mcol div li a
+    url: Belgium.html
+    data_source: tl
+    city_data_source: ts
+    
+    
 production:
   <<: *common
 

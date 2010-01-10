@@ -42,6 +42,25 @@ module ImportPlacesModule
     matched_cities
   end
   
+  def for_each_css_on_url_match(configuration) # yield text, url, config
+    config = OpenStruct.new(configuration)
+    raise ArgumentError, "css_selector or url is missing from configuration" unless (!config.css_selector.blank? && !config.url.blank?)
+    
+    full_url = "#{ImportConfig.city_population_url}#{config.url}"
+    page = nil
+    begin
+      page = Nokogiri::HTML.parse( open( full_url ) ) 
+      # test that we can at least see the body tag which will raise an exception if missing
+      page.css("body").first
+    rescue Exception => e
+      raise "Could not load or parse HTML for '#{full_url}', #{e.message}"
+    end
+    
+    page.css("#{config.css_selector}").map do |elem| 
+      yield elem.inner_text.strip, elem['href'], config
+    end
+  end
+  
   ##
   # This method is a generic import method called by import_cities and import_counties, and not typically called directly 
   # This method retrieves ImportedPlace models and transforms them into persistent Place models
@@ -56,7 +75,13 @@ module ImportPlacesModule
   #   Allows a column's CSS selector to be hard coded for this import.  (e.g. { 'name' => ':first' })
   #
   # [:except_those_with_name]
-  #   Allows rows with a name matching the text to be filtered.  (e.g. [ 'great britain', 'ireland' ])
+  #   Filters rows with a name matching the text.  (e.g. [ 'great britain', 'ireland' ])
+  #
+  # [:except_those_with_parent_identifier]
+  #   Filters rows with a parent identifier matching the text.  (e.g. [ 'LON', '' ])
+  #
+  # [:except_row]
+  #   Filters on of the following options [:last,:first]
   #
   # [:in_state]
   #   Used in retrieving import.yml config settings and helps improve scope for queries.  (e.g. 'england')
@@ -83,7 +108,7 @@ module ImportPlacesModule
     raise ArgumentError, "The place type is not supported" if ![PlaceType::City,PlaceType::County,PlaceType::State].include?(place_type)
     # SLogger.info options.keys.zip(options.values).join(',')
     
-    all_options = %w{ with_country_code use_css_selectors_for except_those_with_name in_state with_config_option force_url_and_data_source match_parent match_parents_on_abbreviation match_parents_on_name}
+    all_options = %w{ with_country_code use_css_selectors_for except_those_with_name except_those_with_parent_identifier in_state with_config_option force_url_and_data_source match_parent match_parents_on_abbreviation match_parents_on_name except_row }
     invalid_options = options.keys.reject { |option| all_options.include?(option.to_s) }
     raise ArgumentError, "The option(s) #{invalid_options.join(',')} do not exist.  Please check the spelling of options." if !invalid_options.empty?
     
@@ -95,6 +120,9 @@ module ImportPlacesModule
     # get option variables into local variables
     ignore_names = options[:except_those_with_name]
     ignore_names = [ignore_names] if (!ignore_names.blank? && !ignore_names.instance_of?(Array))
+    ignore_parent_identifiers = options[:except_those_with_parent_identifier]
+    ignore_parent_identifiers = [ignore_parent_identifiers] if (!ignore_parent_identifiers.blank? && !ignore_parent_identifiers.instance_of?(Array))
+    except_row = options[:except_row]
     manual_column_css_selectors = options[:use_css_selectors_for] ? options[:use_css_selectors_for] : {}    
     in_state, with_config_option, force_url_and_data_source = options[:in_state], options[:with_config_option], options[:force_url_and_data_source]
     match_parent, match_parents_on_abbreviation, match_parents_on_name = options[:match_parent], options[:match_parents_on_abbreviation], options[:match_parents_on_name]
@@ -129,7 +157,9 @@ module ImportPlacesModule
     end
     
     # Import places from ImportedPlace model which loads data from external source
-    places = ImportedPlace.get_places(config_params.url, config_params.data_source, manual_column_css_selectors, ignore_names)
+    places = ImportedPlace.get_places(config_params.url, config_params.data_source, manual_column_css_selectors, ignore_names, ignore_parent_identifiers)
+    places = places.from(1) if except_row == :first
+    places = places.to(places.count-2) if except_row == :last
     
     # Get the parent object or Hash of objects from array based on indexer
     parent = case
@@ -159,8 +189,8 @@ module ImportPlacesModule
           place_key = (!match_parents_on_name.blank? ? place.parent.name : place.parent.abbreviation) if place.parent
           parent.keys.include?(place_key) ? place.parent : nil
         else
-          # if we don't have parents to match, then everything is considered a match 
-          true
+          # if we don't have parents to match, then everything is considered a match if is_root?
+          place.is_root? ? place : nil
       end
       parent_names[place.parent.id] = place.parent.name if (match && place.parent) 
       match

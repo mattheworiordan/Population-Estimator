@@ -4,6 +4,7 @@ class Country < ActiveRecord::Base
   has_many :places
   
   named_scope :in_country_code, lambda { |country_code| { :conditions => ["country_code like ?", "#{country_code}"] } }
+  named_scope :with_country_code, { :conditions => [ "country_code IS NOT NULL" ] } 
   
   # override standard country_code search and make this case insensitive
   def self.find_by_country_code(country_code)

@@ -26,6 +26,9 @@ class CountryTest < ActiveSupport::TestCase
   
   test "the named scopes" do
     assert_not_nil(Country.in_country_code('gb').first, "Country not found in the named scope in_country_code")
+    assert_not_nil(Country.with_country_code.first, "Country not found in the named scope with_country_code")
+    assert(Country.with_country_code.find_by_name("Great Britain").country_code == "gb", "Could not find GB in with_country_code scope")
+    assert(Country.with_country_code.count != Country.all.count, "Countries with country codes match those without country codes")
   end
   
   test "that searches are case insensitive using finder methods" do

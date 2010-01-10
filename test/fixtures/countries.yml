@@ -13,3 +13,10 @@ ireland:
   population: 50
   density_per_sq_km: 1.5
   source_update_date: 2010-01-03
+
+doesnotexist:
+  name: Does not exist and has no country_code
+  country_code: 
+  population: 50
+  density_per_sq_km: 1.5
+  source_update_date: 2010-01-03

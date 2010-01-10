@@ -5,7 +5,7 @@ class ImportedPlace
   attr_accessor :name, :abbreviation, :parent_identifier, :population, :place_type, :area_km_sq
   
   def initialize(name, abbreviation, parent_identifier, population, place_type, area_km_sq)
-    @name = name.strip
+    @name = name.strip.gsub(/\s+[\[\{][^\]\}]+[\]\}]/, "")
     @abbreviation = abbreviation ? abbreviation.strip : nil
     @parent_identifier = parent_identifier
     @population = population.gsub(/,/,"")
@@ -19,15 +19,16 @@ class ImportedPlace
   # Params:
   #   manual_column_css_selector allows the default xpaths for columns to be overriden using syntax such as :abbreviation => ":nth(1)"
   #   filters allows a set of places to be ignored based on a match in the name column
-  def self.get_places(url, data_source, manual_column_css_selectors = {}, filters = [])
+  def self.get_places(url, data_source, manual_column_css_selectors = {}, name_filters = [], parent_identifier_filters = [])
     raise ArgumentError, "URL '#{url}' is invalid" if (url.blank?)
     raise ArgumentError, "Data source '#{data_source}' is invalid" if (data_source.blank?)
     
     # fix up any nil / empty values passed in where we need a value
-    filters = [] if filters.blank?
+    name_filters = [] if name_filters.blank?
+    parent_identifier_filters = [] if parent_identifier_filters.blank?
     manual_column_css_selectors = {} if manual_column_css_selectors.blank?
     
-    full_url = "http://www.citypopulation.de/#{url}"
+    full_url = "#{ImportConfig.city_population_url}#{url}"
     page = nil
     begin
       page = Nokogiri::HTML.parse( open( full_url ) ) 
@@ -63,9 +64,8 @@ class ImportedPlace
     
     # ignore first row as it contains table header
     page.css("#{base_css_selector} tr").to_a.from(1).each do |place|
-      # puts("#{css_selectors.val('name',place)}, #{css_selectors.val('parent_identifier',place)}, #{css_selectors.val('population',place)}")
       @places << self.new(*column_names.map { |col| css_selectors.val(col,place) }) unless
-        (filters.find { |name| css_selectors.val('name',place).strip.downcase == name.downcase } || css_selectors.val('name',place).strip.blank?)
+        (name_filters.find { |name| css_selectors.val('name',place).strip.downcase == name.downcase } || parent_identifier_filters.find { |parent_identifier| css_selectors.val('parent_identifier',place).strip.downcase == parent_identifier.downcase } || css_selectors.val('name',place).strip.blank?)
     end
     
     @places
