@@ -28,7 +28,7 @@ class SLogger
       # simple message to be written
       if (!block) 
         timediff = (starttime ? " > took %0.4fs" % (Time.now - starttime).to_s : "")
-        RAILS_DEFAULT_LOGGER.send severity, "#{timestamp.to_formatted_s(:db)} #{severity} #{msg}#{timediff}\n"
+        RAILS_DEFAULT_LOGGER.send severity, "#{Time.now.to_formatted_s(:db)} #{severity} #{msg}#{timediff}\n"
         puts "> #{severity}: #{msg}#{timediff}\n" unless AppConfig.verbose_logging = false
         Time.now
       else
