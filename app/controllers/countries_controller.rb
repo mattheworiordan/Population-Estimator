@@ -2,7 +2,13 @@ class CountriesController < ApplicationController
   # GET /countries
   # GET /countries.xml
   def index
-    @countries = Country.all
+    @countries = Country.all.sort do |a,b| 
+      case
+        when a.country_code.blank? && !b.country_code.blank? then 1
+        when !a.country_code.blank? && b.country_code.blank? then -1
+        else a.name <=> b.name
+      end 
+    end
 
     respond_to do |format|
       format.html # index.html.erb
@@ -13,45 +19,24 @@ class CountriesController < ApplicationController
   # GET /countries/1
   # GET /countries/1.xml
   def show
-    @country = Country.find(params[:id])
-
-    respond_to do |format|
-      format.html # show.html.erb
-      format.xml  { render :xml => @country }
-    end
-  end
-
-  # GET /countries/new
-  # GET /countries/new.xml
-  def new
-    @country = Country.new
-
-    respond_to do |format|
-      format.html # new.html.erb
-      format.xml  { render :xml => @country }
-    end
-  end
-
-  # GET /countries/1/edit
-  def edit
-    @country = Country.find(params[:id])
-  end
-
-  # POST /countries
-  # POST /countries.xml
-  def create
-    @country = Country.new(params[:country])
-
-    respond_to do |format|
-      if @country.save
-        flash[:notice] = 'Country was successfully created.'
-        format.html { redirect_to(@country) }
-        format.xml  { render :xml => @country, :status => :created, :location => @country }
-      else
-        format.html { render :action => "new" }
-        format.xml  { render :xml => @country.errors, :status => :unprocessable_entity }
+    @country = Country.find_by_country_code(params[:id]) unless params[:id].blank?
+    
+    if @country.blank? 
+      redirect_to :action => "index"  
+    else
+      @children = @country.places.roots
+      @ancestors_and_self = [] # we have no ancestors or self as we are showing root
+      
+      respond_to do |format|
+        format.html 
+        format.xml  { render :xml => @country }
       end
     end
+  end
+
+   # GET /countries/1/edit
+  def edit
+    @country = Country.find(params[:id])
   end
 
   # PUT /countries/1
@@ -68,18 +53,6 @@ class CountriesController < ApplicationController
         format.html { render :action => "edit" }
         format.xml  { render :xml => @country.errors, :status => :unprocessable_entity }
       end
-    end
-  end
-
-  # DELETE /countries/1
-  # DELETE /countries/1.xml
-  def destroy
-    @country = Country.find(params[:id])
-    @country.destroy
-
-    respond_to do |format|
-      format.html { redirect_to(countries_url) }
-      format.xml  { head :ok }
     end
   end
 end

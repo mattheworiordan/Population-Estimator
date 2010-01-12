@@ -11,4 +11,9 @@ class Country < ActiveRecord::Base
     in_country_code(country_code).first
   end
   
+  # use country_id to identify country
+  def to_param
+    country_code
+  end
+  
 end

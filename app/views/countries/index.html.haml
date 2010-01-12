@@ -1,0 +1,8 @@
+%h1 Select a country
+
+%ul
+  - @countries.each do |country| 
+    %td 
+      %li 
+        =link_to("#{country.name} #{country.country_code}, population: #{country.population.thousands}", country) unless country.country_code.blank?
+        ="#{country.name}, population: #{country.population.thousands}" if country.country_code.blank?

@@ -1,0 +1,17 @@
+%ul
+  %li
+    =link_to("World", countries_path)
+    %ul
+      %li 
+        =link_to(name_with_info(@country), @country)
+        - if @place 
+          - render_parents_and_self(@place) do 
+            %ul
+              - @children.each do |child| 
+                %li
+                  =link_to(name_with_info(child), country_place_path(@country, child))
+        - else
+          %ul 
+            - @children.each do |child| 
+              %li
+                =link_to(name_with_info(child), country_place_path(@country, child))

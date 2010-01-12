@@ -18,6 +18,12 @@ class Place < ActiveRecord::Base
   def self.find_by_name (*args) find(:first, { :conditions => [ "places.name like ?", args[0] ] }, *args.from(1)); end
   def self.find_by_abbreviation (*args) find(:first, { :conditions => [ "places.abbreviation like ?", args[0] ] }, *args.from(1)); end
   
+  def ancestors_and_self(current_item = self, hierarchy = [])
+    hierarchy.insert(0, current_item) 
+    ancestors_and_self(current_item.parent, hierarchy) if (current_item.parent)
+    hierarchy
+  end
+  
   # ensure rules about Boroughs & Cities are kept intact
   # A borough can only exist if it has a parent city
   def before_save
