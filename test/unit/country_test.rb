@@ -37,8 +37,9 @@ class CountryTest < ActiveSupport::TestCase
   test "Latitude / Longitude max and mins" do
     gb = countries(:gb)
     gb_rectangle = gb.lat_long_rectangle_of_entire_country
+    
     assert_not_nil(gb_rectangle, "Box of places in Britian is nil and should have a lat/long box")
-    assert(!gb_rectangle.east.blank? && (gb_rectangle.east < gb_rectangle.west), "Invalid longitudes returned in rectangle #{gb_rectangle.inspect} for #{gb.name}")
+    assert(!gb_rectangle.east.blank? && (gb_rectangle.east > gb_rectangle.west), "Invalid longitudes returned in rectangle #{gb_rectangle.inspect} for #{gb.name}")
     assert(!gb_rectangle.north.blank? && (gb_rectangle.north > gb_rectangle.south), "Invalid latitudes returned in rectangle for #{gb.name}")
   end
 end

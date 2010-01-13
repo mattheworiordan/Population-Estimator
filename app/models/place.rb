@@ -31,7 +31,7 @@ class Place < ActiveRecord::Base
     
     # unfortunately ActiveRecord does not support .calculate, .max style calls for multiple columns simultaneously
     # so some SQL had to be embedded
-    sql = 'select max(latitude) as north, min(latitude) as south, max(longitude) as west, min(longitude) as east from places where country_id = ?'
+    sql = 'select max(latitude) as north, min(latitude) as south, min(longitude) as west, max(longitude) as east from places where country_id = ?'
     sql_params = [country.id]
     
     # if a place param is passed in then include the place + any descendents
@@ -41,7 +41,10 @@ class Place < ActiveRecord::Base
     end
     
     rect = Place.find_by_sql( [sql].concat(sql_params) ).first
-    OpenStruct.new({ :north => rect.north.to_f, :south => rect.south.to_f, :east => rect.east.to_f, :west => rect.west.to_f })
+    rect = OpenStruct.new({ :north => rect.north.to_f, :south => rect.south.to_f, :east => rect.east.to_f, :west => rect.west.to_f })
+    rect.latitude_centre = (rect.north + rect.south) / 2
+    rect.longitude_centre = (rect.east + rect.west) / 2
+    rect
   end
   
   # Get the rectangle of North/South Latitude and East/West Longitude for a Country or Place

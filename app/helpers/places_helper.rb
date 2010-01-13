@@ -1,7 +1,7 @@
 module PlacesHelper
   # provides the name with population and lat/long
   def name_with_info(place)
-    "#{place.name}, #{place.population.thousands} people" + (place.instance_of?(Place) ? "#{place.latitude}:#{place.longitude}" : "")
+    "#{place.name}, #{place.population.thousands} people" + (place.instance_of?(Place) ? ", (#{place.latitude}:#{place.longitude})" : "")
   end
   
   def render_parents_and_self(current_place, &block)
@@ -27,5 +27,9 @@ module PlacesHelper
         end
       end
     end
+  end
+
+  def maps_api_key
+    AppConfig.google_api_key
   end
 end

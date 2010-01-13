@@ -8,3 +8,4 @@ Population Estimator To Do list
 * TODO: Add a de-duplication function for places that have the EXACT same lat/long
 * TODO: Add wiki type functions to allow changes to be made to places
 * TODO: Review performance issues calculating Lat/Long box, perhaps cache in model and then refresh cache if older than 1 day etc?
+* TODO: Some places such as Ballina, Connacht, Ireland, are returning the wrong information for some reason.  We need to add a check to ensure the country matches when importing, and see if we can pass through some more country information in the request somehow.

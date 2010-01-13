@@ -20,6 +20,8 @@ class CountriesController < ApplicationController
   # GET /countries/1.xml
   def show
     @country = Country.find_by_country_code(params[:id]) unless params[:id].blank?
+    @map_rectangle = @country.lat_long_rectangle_of_entire_country
+    SLogger.info @map_rectangle.inspect
     
     if @country.blank? 
       redirect_to :action => "index"  

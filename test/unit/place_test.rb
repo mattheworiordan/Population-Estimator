@@ -108,8 +108,8 @@ class PlaceTest < ActiveSupport::TestCase
     
     assert(england.latitude < england_rectangle.north, "England centre #{england.latitude} should be south of the north most point #{england_rectangle.north}")
     assert(england.latitude > england_rectangle.south, "England centre #{england.latitude} should be north of the south most point #{england_rectangle.south}")
-    assert(england.longitude < england_rectangle.west, "England centre #{england.longitude} should be east of the west most point #{england_rectangle.west}")
-    assert(england.longitude > england_rectangle.east, "England centre #{england.longitude} should be west of the north most point #{england_rectangle.east}")
+    assert(england.longitude > england_rectangle.west, "England centre #{england.longitude} should be east of the west most point #{england_rectangle.west}")
+    assert(england.longitude < england_rectangle.east, "England centre #{england.longitude} should be west of the north most point #{england_rectangle.east}")
         
     wales = places(:wales)
     wales_rectangle = wales.lat_long_rectangle_with_descendents
@@ -122,7 +122,7 @@ class PlaceTest < ActiveSupport::TestCase
     gb_rectangle = Place.lat_long_rectangle_with_descendents(gb)
     
     assert_not_nil(gb_rectangle, "No rectangle returned for #{gb.name}")
-    assert(!gb_rectangle.east.blank? && (gb_rectangle.east < gb_rectangle.west), "Invalid longitudes returned in rectangle #{gb_rectangle.inspect} for #{gb.name}")
+    assert(!gb_rectangle.east.blank? && (gb_rectangle.east > gb_rectangle.west), "Invalid longitudes returned in rectangle #{gb_rectangle.inspect} for #{gb.name}")
     assert(!gb_rectangle.north.blank? && (gb_rectangle.north > gb_rectangle.south), "Invalid latitudes returned in rectangle for #{gb.name}")
   end
 end

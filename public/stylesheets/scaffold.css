@@ -54,3 +54,7 @@ a.selected { font-weight: bold; }
   list-style: square;
 }
 
+#map {
+  width: 800px;
+  height: 500px;
+}

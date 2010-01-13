@@ -10,10 +10,11 @@ class PlacesController < ApplicationController
   def show
     @country = Country.find_by_country_code(params[:country_id])
     @place = Place.find(params[:id])
+    @map_rectangle = @place.lat_long_rectangle_with_descendents
     @children = @place.children
 
     respond_to do |format|
-      format.html { render :template => 'countries/show', :layout => 'countries' }
+      format.html { render :template => 'countries/show', :layout => 'application' }
       format.xml  { render :xml => @place }
     end
   end
