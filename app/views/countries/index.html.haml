@@ -1,8 +1,10 @@
+=render :partial => 'countries/google_map'
+
 %h1 Select a country
 
 %ul
   - @countries.each do |country| 
     %td 
       %li 
-        =link_to("#{country.name} #{country.country_code}, population: #{country.population.thousands}", country) unless country.country_code.blank?
-        ="#{country.name}, population: #{country.population.thousands}" if country.country_code.blank?
+        =link_to("#{country.name} #{country.country_code}, #{country.population.thousands} people, #{country.density_per_sq_km} p/sq/km", country) unless country.country_code.blank?
+        ="#{country.name}, population: #{country.population.thousands}, density p/sq/km: #{country.density_per_sq_km}" if country.country_code.blank?

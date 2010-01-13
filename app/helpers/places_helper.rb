@@ -1,7 +1,9 @@
 module PlacesHelper
   # provides the name with population and lat/long
   def name_with_info(place)
-    "#{place.name}, #{place.population.thousands} people" + (place.instance_of?(Place) ? ", (#{place.latitude}:#{place.longitude})" : "")
+    size = place.public_methods.include?("area_km_sq") && !place.area_km_sq.blank? ? ", #{place.area_km_sq} sq/km" : ""
+    density = place.public_methods.include?("density_per_sq_km") && !place.density_per_sq_km.blank? ? ", #{place.density_per_sq_km} p/sq/km" : ""
+    "#{place.name}, #{place.population.thousands} people#{size}#{density}" + (place.instance_of?(Place) ? ", (#{place.latitude}:#{place.longitude})" : "")
   end
   
   def render_parents_and_self(current_place, &block)

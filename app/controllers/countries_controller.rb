@@ -9,6 +9,8 @@ class CountriesController < ApplicationController
         else a.name <=> b.name
       end 
     end
+    @map_rectangle = Rectangle.new(0,0,0,0) # GMap will just show a world map
+    @place = nil
 
     respond_to do |format|
       format.html # index.html.erb
@@ -21,7 +23,7 @@ class CountriesController < ApplicationController
   def show
     @country = Country.find_by_country_code(params[:id]) unless params[:id].blank?
     @map_rectangle = @country.lat_long_rectangle_of_entire_country
-    SLogger.info @map_rectangle.inspect
+    @place = nil
     
     if @country.blank? 
       redirect_to :action => "index"  
@@ -32,28 +34,6 @@ class CountriesController < ApplicationController
       respond_to do |format|
         format.html 
         format.xml  { render :xml => @country }
-      end
-    end
-  end
-
-   # GET /countries/1/edit
-  def edit
-    @country = Country.find(params[:id])
-  end
-
-  # PUT /countries/1
-  # PUT /countries/1.xml
-  def update
-    @country = Country.find(params[:id])
-
-    respond_to do |format|
-      if @country.update_attributes(params[:country])
-        flash[:notice] = 'Country was successfully updated.'
-        format.html { redirect_to(@country) }
-        format.xml  { head :ok }
-      else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @country.errors, :status => :unprocessable_entity }
       end
     end
   end
