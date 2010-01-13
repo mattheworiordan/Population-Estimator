@@ -37,14 +37,11 @@ class Place < ActiveRecord::Base
     # if a place param is passed in then include the place + any descendents
     if !place.blank?
       sql << ' and ( (ancestry like ?) or (id = ?) )'
-      sql_params.concat( [ ( place.ancestry.blank? ? "" : "#{place.ancestry}/" ) + "#{place.id}/%", place.id] )
+      sql_params.concat( [ ( place.ancestry.blank? ? "" : "#{place.ancestry}/" ) + "#{place.id}%", place.id] )
     end
     
     rect = Place.find_by_sql( [sql].concat(sql_params) ).first
-    rect = OpenStruct.new({ :north => rect.north.to_f, :south => rect.south.to_f, :east => rect.east.to_f, :west => rect.west.to_f })
-    rect.latitude_centre = (rect.north + rect.south) / 2
-    rect.longitude_centre = (rect.east + rect.west) / 2
-    rect
+    rect = Rectangle.new(rect.north.to_f, rect.south.to_f, rect.east.to_f, rect.west.to_f)
   end
   
   # Get the rectangle of North/South Latitude and East/West Longitude for a Country or Place
