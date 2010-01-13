@@ -1,6 +1,8 @@
 require 'import_places.rb'
 load "#{RAILS_ROOT}/config/environment.rb"
 
+##
+# Allows import of any country with country code i.e. rake import:gb
 namespace :import do
   
   countries = Country.with_country_code.collect { |country| country.country_code }
