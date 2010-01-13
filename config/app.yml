@@ -1,6 +1,7 @@
 common: &common
   google_api_key: ABQIAAAAdJDpHOm2ScdjgUWKqN4KjBQaCoiz7kHbPYNoCNHTGcAwLJhMgBR8qrqyrFXo1Mjrdp3x6JTugklIXQ
   yahoo_api_key: vmp3df7V34F7vuDzFsuuyNMOP7LIFR9L8yK_eE_tfVbTYALA0B3SLFv4aWgf00wE3aLkCfCxag--
+  multimap_api_key: OA10011316909631041
   verbose_logging: false
   
 production:

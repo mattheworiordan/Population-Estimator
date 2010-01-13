@@ -9,3 +9,6 @@ Population Estimator To Do list
 * TODO: Add wiki type functions to allow changes to be made to places
 * TODO: Review performance issues calculating Lat/Long box, perhaps cache in model and then refresh cache if older than 1 day etc?
 * TODO: Some places such as Ballina, Connacht, Ireland, are returning the wrong information for some reason.  We need to add a check to ensure the country matches when importing, and see if we can pass through some more country information in the request somehow.
+* TODO: If we have more information on a place such as the sq.km, we could improve the accuracy of the zoom probably.
+* TODO: Work through data manually to see where there may be too many places with the same lat/long
+* TODO: Remove API keys from the config in Github, as well as work out what to do with passwords in database.yml

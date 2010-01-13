@@ -26,7 +26,7 @@ class GeocodePlaces
     all_places.each_index do |index| 
       geocode_and_save all_places[index]
       if ( (index+1) % @pause_after == 0 )
-        SLogger.info "Geocoded #{index+1} places, pausing for #{@pause_for_seconds}s to maintain sensible throttle" 
+        SLogger.info "\n---- Geocoded #{index+1}/#{all_places.count} places, pausing for #{@pause_for_seconds}s to maintain sensible throttle\n" 
         sleep @pause_for_seconds
       end
     end
@@ -35,39 +35,56 @@ class GeocodePlaces
   ##
   # Simply geocode the place param and store the lat/long if available
   def geocode_and_save(place)
-    geocoder = Graticule.service(:google).new AppConfig.google_api_key
-    geocoder_alternative = Graticule.service(:yahoo).new AppConfig.yahoo_api_key
-    name = get_full_name(place)
+    raise ArgumentError, "Place must have a valid country code to be looked up" if place.country.country_code.blank?
     
-    location = geocode_locate_and_save(geocoder, place, name)
-    location = geocode_locate_and_save(geocoder_alternative, place, name) if !location
+    # geocoders to resolve lookups in order
+    geocoders = [
+      Graticule.service(:google).new(AppConfig.google_api_key),
+      Graticule.service(:yahoo).new(AppConfig.yahoo_api_key),
+      Graticule.service(:multimap).new(AppConfig.multimap_api_key)
+    ]
+    # Most geocoders prefer London, Greater London, Great Britain format
+    #   however the following name is also used :locality=>"London, Greater London", :country='gb'
+    name_searches = [ get_full_name(place), {:locality=>get_full_name(place), :country=>place.country.country_code} ]
+    match_permutations = ( geocoders*name_searches.count ).zip( (name_searches*geocoders.count).sort { |a,b| a.instance_of?(String) ? -1 : 1 } )
     
-    SLogger.warn "Unable to save #{name}, Location:(#{place.latitude}:#{place.longitude})" if !location
+    location_found = match_permutations.find do |perm|
+      geocoder, name = perm
+      geocode_locate_and_save(geocoder, place, name) 
+    end
+    
+    SLogger.warn "Unable to save #{name}, Location:(#{place.latitude}:#{place.longitude})" if !location_found
   end
   
 private
 
   def geocode_locate_and_save(geocoder, place, name)
-    location = nil
-    
+    name_for_warnings = name.instance_of?(String) ? name : name[:locality]
     begin
-      location = geocoder.locate name
-      place.latitude = location.latitude
-      place.longitude = location.longitude
-      if !place.save
-        location = nil
-      else 
-        SLogger.info "#{name}, Location:(#{place.latitude}:#{place.longitude}) using #{geocoder.class.to_s.gsub(/.+::/,'')}" 
+      location = geocoder.locate(name)
+      
+      # ensure country matches
+      if (location.country.to_s.downcase == place.country.country_code.downcase)
+        place.latitude = location.latitude
+        place.longitude = location.longitude
+      
+        if !place.save
+          SLogger.warn "   * Error while saving #{place.name}, error #{place.errors.full_messages.join(',')}" 
+        else 
+          SLogger.info "#{name_for_warnings}, lat:long (#{place.latitude}:#{place.longitude}) using #{geocoder.class.to_s.gsub(/.+::/,'')}" 
+          return location
+        end
+      else
+        SLogger.info("   * No country match for #{name_for_warnings} using #{geocoder.class.to_s.gsub(/.+::/,'')}, expecting #{place.country.country_code}, got #{location.country} ")
       end
     rescue Exception => e
-      location = nil
-      SLogger.warn "Error when geocoding #{name}, #{e.message}" 
+      SLogger.warn "   * Error when geocoding #{name_for_warnings}, #{e.message}" 
     end
-    
-    location
+    nil
   end
   
+  # Get full name from ancestry i.e. London, Greater London, Great Britain
   def get_full_name(place)
-    place.name + ", " + (place.parent ? get_full_name(place.parent) : place.country.name)
+    place.name + (place.parent ? ", " + get_full_name(place.parent) : "")
   end
 end
