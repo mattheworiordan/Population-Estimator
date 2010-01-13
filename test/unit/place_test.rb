@@ -68,7 +68,7 @@ class PlaceTest < ActiveSupport::TestCase
   end
   
   test "that city children are automatically set to boroughs" do
-    yorkcity = places(:yorkcity)
+    yorkcity = places(:york_city)
     # TODO: Replace with a simple create call once bug is fixed in ancestry library
     test_borough = yorkcity.children.build :name => 'Sample borough', :place_type => PlaceType::City, :population => 1, :country => @gb
     test_borough.save
@@ -99,5 +99,30 @@ class PlaceTest < ActiveSupport::TestCase
     
     wales.latitude = 23.232
     assert(wales.save, "Lat & long are valid so Wales should be able to be saved #{wales.errors.full_messages.to_sentence}")
+  end
+  
+  test "latitude and longitude rectangl functions" do
+    england = places(:england)
+    england_rectangle = england.lat_long_rectangle_with_descendents
+    assert_not_nil(england_rectangle)
+    
+    assert(england.latitude < england_rectangle.north, "England centre #{england.latitude} should be south of the north most point #{england_rectangle.north}")
+    assert(england.latitude > england_rectangle.south, "England centre #{england.latitude} should be north of the south most point #{england_rectangle.south}")
+    assert(england.longitude < england_rectangle.west, "England centre #{england.longitude} should be east of the west most point #{england_rectangle.west}")
+    assert(england.longitude > england_rectangle.east, "England centre #{england.longitude} should be west of the north most point #{england_rectangle.east}")
+        
+    wales = places(:wales)
+    wales_rectangle = wales.lat_long_rectangle_with_descendents
+    
+    assert(wales_rectangle.west == wales_rectangle.east, "Wales has no children to expand the rectangle so west & east should be the same")
+    assert(wales_rectangle.north == wales_rectangle.south, "Wales has no children to expand the rectangle so north & south should be the same")
+    
+    # whilst I appreciate we should not test how countries interact with places model, a country is needed to test the class method lat_long_rectangle_with_children
+    gb = countries(:gb)
+    gb_rectangle = Place.lat_long_rectangle_with_descendents(gb)
+    
+    assert_not_nil(gb_rectangle, "No rectangle returned for #{gb.name}")
+    assert(!gb_rectangle.east.blank? && (gb_rectangle.east < gb_rectangle.west), "Invalid longitudes returned in rectangle #{gb_rectangle.inspect} for #{gb.name}")
+    assert(!gb_rectangle.north.blank? && (gb_rectangle.north > gb_rectangle.south), "Invalid latitudes returned in rectangle for #{gb.name}")
   end
 end

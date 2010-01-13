@@ -18,6 +18,38 @@ class Place < ActiveRecord::Base
   def self.find_by_name (*args) find(:first, { :conditions => [ "places.name like ?", args[0] ] }, *args.from(1)); end
   def self.find_by_abbreviation (*args) find(:first, { :conditions => [ "places.abbreviation like ?", args[0] ] }, *args.from(1)); end
   
+  # Get the rectangle of North/South Latitude and East/West Longitude for a Country or Place
+  # Returns an oject with attributes north, south, east, west 
+  #
+  # *Note on lat/longs*
+  # latitudes: go north (higher) to south (lower)
+  # longitudes: go east (lower) to west (higher)
+  #
+  def self.lat_long_rectangle_with_descendents(country, place = nil)
+    raise ArgumentError, "Cannot determine longitude and latitude box if Country is missing or not a Country object" if (country.blank? || !country.instance_of?(Country)) 
+    raise ArgumentError, "Place must be of type place" if (!place.blank? && !place.instance_of?(Place))
+    
+    # unfortunately ActiveRecord does not support .calculate, .max style calls for multiple columns simultaneously
+    # so some SQL had to be embedded
+    sql = 'select max(latitude) as north, min(latitude) as south, max(longitude) as west, min(longitude) as east from places where country_id = ?'
+    sql_params = [country.id]
+    
+    # if a place param is passed in then include the place + any descendents
+    if !place.blank?
+      sql << ' and ( (ancestry like ?) or (id = ?) )'
+      sql_params.concat( [ ( place.ancestry.blank? ? "" : "#{place.ancestry}/" ) + "#{place.id}/%", place.id] )
+    end
+    
+    rect = Place.find_by_sql( [sql].concat(sql_params) ).first
+    OpenStruct.new({ :north => rect.north.to_f, :south => rect.south.to_f, :east => rect.east.to_f, :west => rect.west.to_f })
+  end
+  
+  # Get the rectangle of North/South Latitude and East/West Longitude for a Country or Place
+  # Calls method Place#longitude_latitude_rectangle
+  def lat_long_rectangle_with_descendents()
+    self.class.lat_long_rectangle_with_descendents(country, self)
+  end
+  
   def ancestors_and_self(current_item = self, hierarchy = [])
     hierarchy.insert(0, current_item) 
     ancestors_and_self(current_item.parent, hierarchy) if (current_item.parent)

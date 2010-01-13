@@ -1,5 +1,3 @@
-# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-
 england:
   name: England
   abbreviation: ENG
@@ -7,6 +5,8 @@ england:
   place_type: state
   area_km_sq: 5000
   country: gb
+  latitude: 52.0190289
+  longitude: -0.7704274
 
 wales:
   name: Wales
@@ -15,6 +15,30 @@ wales:
   place_type: state
   area_km_sq: 5000
   country: gb
+  latitude: 52.4699784
+  longitude: -3.8303771
+
+merseyside:
+  name: Merseyside
+  abbreviation: MER
+  population: 100
+  place_type: county
+  area_km_sq: 300
+  ancestry: <%= Fixtures.identify(:england) %>
+  country: gb
+  latitude: 53.4108333
+  longitude: -2.9775
+  
+liverpool:
+  name: Liverpool
+  abbreviation: 
+  population: 50
+  place_type: city
+  area_km_sq: 50
+  ancestry: <%= Fixtures.identify(:england) %>/<%= Fixtures.identify(:merseyside) %>
+  country: gb
+  latitude: 53.4108333
+  longitude: -2.9775
   
 york:
   name: York
@@ -24,8 +48,10 @@ york:
   area_km_sq: 300
   ancestry: <%= Fixtures.identify(:england) %>
   country: gb
+  latitude: 53.9577018  
+  longitude: -1.0822855
   
-yorkcity:
+york_city:
   name: York
   abbreviation: YOR
   population: 10
@@ -33,11 +59,53 @@ yorkcity:
   area_km_sq: 20
   ancestry: <%= Fixtures.identify(:england) %>/<%= Fixtures.identify(:york) %>
   country: gb
+  latitude: 53.9577018
+  longitude: -1.0822855
 
 harrogate:
   name: Harrogate
   population: 1
   place_type: borough
   area_km_sq: 1
-  ancestry: <%= Fixtures.identify(:england) %>/<%= Fixtures.identify(:york) %>/<%= Fixtures.identify(:yorkcity) %>
+  ancestry: <%= Fixtures.identify(:england) %>/<%= Fixtures.identify(:york) %>/<%= Fixtures.identify(:york_city) %>
+  country: gb
+  latitude: 54.009476
+  longitude: -1.468945
+  
+greater_london:
+  name: London
+  population: 1
+  place_type: county
+  area_km_sq: 1572
+  ancestry: <%= Fixtures.identify(:england) %>
+  country: gb
+  latitude: 51.4613418
+  longitude: -0.3035466
+  
+london:
+  name: London
+  population: 1
+  place_type: city
+  area_km_sq: 500
+  ancestry: <%= Fixtures.identify(:england) %>/<%= Fixtures.identify(:greater_london) %>
+  country: gb
+  latitude: 51.5001524
+  longitude: -0.1262362
+  
+city_of_london:
+  name: City of London
+  population: 1
+  place_type: borough
+  area_km_sq: 50
+  ancestry: <%= Fixtures.identify(:england) %>/<%= Fixtures.identify(:greater_london) %>/<%= Fixtures.identify(:london) %>
+  country: gb
+  latitude: 51.51333
+  longitude: -0.088947
+  
+hounslow:
+  name: Hounslow
+  population: 1
+  place_type: borough
+  area_km_sq: 50
+  ancestry: <%= Fixtures.identify(:england) %>/<%= Fixtures.identify(:greater_london) %>/<%= Fixtures.identify(:london) %>
   country: gb

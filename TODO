@@ -5,3 +5,6 @@ Population Estimator To Do list
 * TODO: Consider adding batches to the import so a clean up can be done after import?
 * TODO: REMEMBER TO GEOCODE THE FIRST 500 or so places again in order...
 * TODO: Refactor UK to use the functionality built for Belgium where it can pick up lists of links and process them
+* TODO: Add a de-duplication function for places that have the EXACT same lat/long
+* TODO: Add wiki type functions to allow changes to be made to places
+* TODO: Review performance issues calculating Lat/Long box, perhaps cache in model and then refresh cache if older than 1 day etc?
