@@ -53,7 +53,7 @@ class GeocodePlaces
       geocode_locate_and_save(geocoder, place, name) 
     end
     
-    SLogger.warn "Unable to save #{name}, Location:(#{place.latitude}:#{place.longitude})" if !location_found
+    SLogger.warn "CANNOT SAVE #{place.name}, Location:(#{place.latitude}:#{place.longitude}), no match found" if !location_found
   end
   
 private
