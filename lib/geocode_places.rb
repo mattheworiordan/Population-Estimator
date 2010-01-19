@@ -45,7 +45,7 @@ class GeocodePlaces
     ]
     # Most geocoders prefer London, Greater London, Great Britain format
     #   however the following name is also used :locality=>"London, Greater London", :country='gb'
-    name_searches = [ get_full_name(place), {:locality=>get_full_name(place), :country=>place.country.country_code} ]
+    name_searches = [ get_full_name(place) + ", #{place.country.country_code}", {:locality=>get_full_name(place), :country=>place.country.country_code} ]
     match_permutations = ( geocoders*name_searches.count ).zip( (name_searches*geocoders.count).sort { |a,b| a.instance_of?(String) ? -1 : 1 } )
     
     location_found = match_permutations.find do |perm|
@@ -65,14 +65,18 @@ private
       
       # ensure country matches
       if (location.country.to_s.downcase == place.country.country_code.downcase)
-        place.latitude = location.latitude
-        place.longitude = location.longitude
+        if (!place.parent.blank? && (location.latitude == place.parent.latitude) && (location.longitude == place.parent.longitude))
+          SLogger.info("   * No match as parent has same lat/long for #{name_for_warnings} using #{geocoder.class.to_s.gsub(/.+::/,'')}, parent #{place.parent.name}")
+        else
+          place.latitude = location.latitude
+          place.longitude = location.longitude
       
-        if !place.save
-          SLogger.warn "   * Error while saving #{place.name}, error #{place.errors.full_messages.join(',')}" 
-        else 
-          SLogger.info "#{name_for_warnings}, lat:long (#{place.latitude}:#{place.longitude}) using #{geocoder.class.to_s.gsub(/.+::/,'')}" 
-          return location
+          if !place.save
+            SLogger.warn "   * Error while saving #{place.name}, error #{place.errors.full_messages.join(',')}" 
+          else 
+            SLogger.info "#{name_for_warnings}, lat:long (#{place.latitude}:#{place.longitude}) using #{geocoder.class.to_s.gsub(/.+::/,'')}" 
+            return location
+          end
         end
       else
         SLogger.info("   * No country match for #{name_for_warnings} using #{geocoder.class.to_s.gsub(/.+::/,'')}, expecting #{place.country.country_code}, got #{location.country} ")

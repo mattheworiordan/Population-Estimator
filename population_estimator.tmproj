@@ -15,6 +15,8 @@
 			<string>app</string>
 		</dict>
 		<dict>
+			<key>expanded</key>
+			<true/>
 			<key>name</key>
 			<string>config</string>
 			<key>regexFolderFilter</key>
@@ -23,6 +25,8 @@
 			<string>config</string>
 		</dict>
 		<dict>
+			<key>expanded</key>
+			<true/>
 			<key>name</key>
 			<string>db</string>
 			<key>regexFolderFilter</key>
@@ -106,7 +110,7 @@
 			<key>filename</key>
 			<string>TODO</string>
 			<key>lastUsed</key>
-			<date>2010-01-13T00:43:29Z</date>
+			<date>2010-01-15T18:16:21Z</date>
 		</dict>
 	</array>
 	<key>fileHierarchyDrawerWidth</key>
@@ -116,6 +120,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{91, 211}, {1058, 811}}</string>
+	<string>{{176, 155}, {1061, 778}}</string>
 </dict>
 </plist>

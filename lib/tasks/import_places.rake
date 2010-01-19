@@ -16,5 +16,5 @@ namespace :import do
     end
   end
   
-  task :all => country_symbols
+  task :all_places => country_symbols
 end
