@@ -41,6 +41,9 @@ Rails::Initializer.run do |config|
   # Geocode resolution gem
   config.gem 'happymapper'
   config.gem 'graticule', :lib => 'graticule'
+  
+  # image info
+  config.gem 'imagesize', :lib => 'image_size'
 
   # Only load the plugins named here, in the order given (default is alphabetical).
   # :all can be used as a placeholder for all plugins not explicitly named
