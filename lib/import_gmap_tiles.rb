@@ -124,7 +124,7 @@ private
 	  encoded_tile_url = CGI.escape(tile_url)
 	
 		SLogger.info("GET #{proxy_url} with map from #{tile_url}")
-		Kernel::system("awget -q --post-data=u=#{encoded_tile_url} --output-document=\"#{tile_path}\" #{proxy_url}/includes/process.php?action=update")
+		Kernel::system("wget -q --post-data=u=#{encoded_tile_url} --output-document=\"#{tile_path}\" #{proxy_url}/includes/process.php?action=update")
 	end
 	
 	# log that the download has failed for this proxy
