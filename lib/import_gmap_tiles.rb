@@ -14,7 +14,7 @@ class ImportGmapTiles
 		#		test with this URL http://mt2.google.com/vt/x=125&y=86&z=8
 		@proxy_index = 0
 		@proxies = [ 
-			# { :url => nil, :failures => 0}, # Comment this one out if you don't want to hit Google directly and get banned pretty quickly
+			{ :url => nil, :failures => 0}, # Comment this one out if you don't want to hit Google directly and get banned pretty quickly
 			{ :url => "http://www.proxg.info/browse.php?b=28&f=norefer&u=$url_no_protocol", :failures => 0},
 			{ :url => "http://www.fggg.info/browse.php?b=4&f=norefer&u=$url", :failures => 0},
 			{ :url => "http://www.iloveprivacy.eu/browse.php?b=4&f=norefer&u=$url", :failures => 0},
@@ -99,6 +99,7 @@ private
 			Kernel::system("wget -q #{cookies} --output-document=\"#{ignore_path}\" \"#{proxy[:url]}\"")
 			cookies = cookies.gsub(/--save-cookies/, "--load-cookies")
 		end
+		SLogger.info("GET #{url_with_proxy}")
 		Kernel::system("wget -nv #{cookies} --output-document=\"#{tile_path}\" \"#{url_with_proxy}\"")
 	end
 	
@@ -118,6 +119,7 @@ private
 		proxy = @proxies[@proxy_index]
 		if proxy
 			proxy[:failures] = proxy[:failures].next
+			SLogger.info "#{proxy[:failures]} errors now on proxy #{proxy[:url]}\n"
 			if proxy[:failures] >= @proxy_failure_max
 				@proxy_index = @proxy_index.next
 				SLogger.info "\n\nSwitching from proxy #{proxy[:url]} to #{@proxies[@proxy_index][:url]}\n\n" if @proxies[@proxy_index]
