@@ -12,7 +12,7 @@ require 'image_size'
 class ImportGmapTiles
 	def initialize()
 		@zoom_range = (AppConfig.gmap_min_zoom..AppConfig.gmap_max_zoom).to_a
-		@pause_after = 50
+		@pause_after = 20
 		@pause_for_seconds = 2
 		
 		# uses proxy list from here http://www.publicproxyservers.com/proxy/list_rating1.html
@@ -26,15 +26,14 @@ class ImportGmapTiles
 		
 		# build up list of all proxy servers across 10 pages based on the ones with the best response times
 		SLogger.info "Getting list of proxies" do
-  		proxy_list_urls = (1..1).map { |id| "http://www.publicproxyservers.com/proxy/list_avr_time#{id}.html" } 
+  		proxy_list_urls = (1..10).map { |id| "http://www.publicproxyservers.com/proxy/list_avr_time#{id}.html" } 
   		proxy_list_urls.each do
   		  # parse the HTML and put the links into proxies
   		  Nokogiri::HTML.parse( open( proxy_list_urls[0] ) ).css("td.pthtdd a").each { |link| @proxies << link['href'] }
   		end
-  		
-  		# TODO: REMOVE THIS TESTING CODE
-  		@proxies = @proxies[0..0]
   	end
+  	
+  	SLogger.info "Proxies found #{@proxies.count}\n\n"
 	end
 	
 	##
@@ -66,13 +65,13 @@ class ImportGmapTiles
 			log_to_proxy_download_failed if result.failed == 1
 			
 			if ( (successful+1) % @pause_after == 0 )
-				SLogger.info "\n---- Downloaded #{successful}/#{tiles.count} tiles successfully, #{skipped} skipped, #{failed} failed.  Pausing for #{@pause_for_seconds}s\n" 
+				SLogger.info "---- Processed #{successful+skipped+failed}/#{tiles.count} tiles: #{successful} successful, #{skipped} skipped, #{failed} failed.  Pausing for #{@pause_for_seconds}s\n" 
 				sleep @pause_for_seconds
 			end
 			
 			if all_proxies_failed?
 			  summary = @proxy_list.map { |proxy| "#{proxy[:url].ljust(50)} => #{proxy[:success].thousands.rjust(5)} succeeded, #{proxy[:failures].thousands.rjust(5)} failed"}.join("\n")
-    	  SLogger.info "\n\n\n Done, no more proxies left\n\n\n#{summary}\n--------------\nFinal count: downloaded #{successful}/#{tiles.count} tiles successfully, #{skipped} skipped, #{failed} failed.  Pausing for #{@pause_for_seconds}s\n"
+    	  SLogger.info "\n\n\n Done, no more proxies left\n\n\n#{summary}\n--------------\nProcessed #{tiles.count} tiles: #{successful} successful, #{skipped} skipped, #{failed} failed."
     	  return
     	end
 		end
@@ -89,7 +88,7 @@ class ImportGmapTiles
 		tile_path = Rails.root.join('db',AppConfig.gmap_db_path,tile_name)
 		
 		if (File.exists?(tile_path))
-			SLogger.info "Skipping #{tile_name} as file already exists"
+			# SLogger.info "Skipping #{tile_name} as file already exists"
 			result.skipped = 1
 		else
 			if execute_wget(tile_url, tile_path)
@@ -125,7 +124,7 @@ private
 	  encoded_tile_url = CGI.escape(tile_url)
 	
 		SLogger.info("GET #{proxy_url} with map from #{tile_url}")
-		Kernel::system("wget #{proxy_url}/includes/process.php?action=update --post-data=u=#{encoded_tile_url} --output-document=\"#{tile_path}\"")
+		Kernel::system("awget -q --post-data=u=#{encoded_tile_url} --output-document=\"#{tile_path}\" #{proxy_url}/includes/process.php?action=update")
 	end
 	
 	# log that the download has failed for this proxy
@@ -154,6 +153,6 @@ private
 				return true if (!image.width.blank? && (image.width == AppConfig.gmap_tile_size))
 			end
 		end
-		File.delete(image_path)
+		File.delete(image_path) if File.exists?(image_path)
 	end
 end
