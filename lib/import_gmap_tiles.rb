@@ -1,39 +1,49 @@
 require 'image_size'
 
+## 
+# ImportGmapTiles uses proxy servers to retrieve all the Google Map tile images from their servers
+# 
+# As Google restricts google map queries to around 1,000 per day, the use of public proxies is required
+# Fortunately, the public proxies for some reason mostly use the same URL conventions so a simple wget
+# post request can be constructed which works for more than half of all public proxies! (as of Jan 2010)
+#
+# Lets hope the public proxies don't mind us using them for this :O
+#
 class ImportGmapTiles
-	
-	## TODO: Add in randomisation of Proxy (possibly)
-	## TODO: Collect list of failed tiles to be processed again at the end with a working proxy
-	
 	def initialize()
 		@zoom_range = (AppConfig.gmap_min_zoom..AppConfig.gmap_max_zoom).to_a
-		@pause_after = 10
+		@pause_after = 50
 		@pause_for_seconds = 2
 		
-		# used proxy list from here http://www.publicproxyservers.com/proxy/list_rating1.html
-		#		test with this URL http://mt2.google.com/vt/x=125&y=86&z=8
+		# uses proxy list from here http://www.publicproxyservers.com/proxy/list_rating1.html
+		#		test with this URL directly hitting Google http://mt2.google.com/vt/x=125&y=86&z=8
+		#   test using proxy and wget as follows
+		#     wget http://www.unblocktwitter.org/includes/process.php?action=update --post-data=u=http%3A%2F%2Fmt2.google.com%2Fvt%2Fx%3D125%26y%3D86%26z%3D8 --output-document=gmap_tile.png
+		
 		@proxy_index = 0
-		@proxies = [ 
-			{ :url => nil, :failures => 0}, # Comment this one out if you don't want to hit Google directly and get banned pretty quickly
-			{ :url => "http://www.proxg.info/browse.php?b=28&f=norefer&u=$url_no_protocol", :failures => 0},
-			{ :url => "http://www.fggg.info/browse.php?b=4&f=norefer&u=$url", :failures => 0},
-			{ :url => "http://www.iloveprivacy.eu/browse.php?b=4&f=norefer&u=$url", :failures => 0},
-			{ :url => "http://www.getpastit.info/browse.php?b=28&f=norefer&u=$url_no_protocol", :failures => 0},
-			{ :url => "http://www.myfetch4you.info/browse.php?b=0&f=norefer&u=$url", :failures => 0},
-			{ :url => "http://faceb00k.in/browse.php?b=0&f=norefer&u=$url", :failures => 0},
-			{ :url => "http://www.firsthide.info/browse.php?b=0&f=norefer&u=$url", :failures => 0},
-			{ :url => "http://www.myfetch4you.info/browse.php?b=0&f=norefer&u=$url", :failures => 0},
-			{ :url => "http://www.nameview.info/surf.php?b=0&f=norefer&u=$url", :failures => 0},
-			{ :url => "http://www.mywayin.info/browse.php?b=0&f=norefer&u=$url", :failures => 0},
-			{ :url => "http://www.enjoyaccess.info/browse.php?b=0&f=norefer&u=$url", :failures => 0}
-		]
 		@proxy_failure_max = 5
+		@proxies = []
+		
+		# build up list of all proxy servers across 10 pages based on the ones with the best response times
+		SLogger.info "Getting list of proxies" do
+  		proxy_list_urls = (1..1).map { |id| "http://www.publicproxyservers.com/proxy/list_avr_time#{id}.html" } 
+  		proxy_list_urls.each do
+  		  # parse the HTML and put the links into proxies
+  		  Nokogiri::HTML.parse( open( proxy_list_urls[0] ) ).css("td.pthtdd a").each { |link| @proxies << link['href'] }
+  		end
+  		
+  		# TODO: REMOVE THIS TESTING CODE
+  		@proxies = @proxies[0..0]
+  	end
 	end
 	
 	##
 	# Start importing all Google Map tiles which we don't have locally in the db path
 	# 
 	def start(*options)
+	  # prepare proxy_list object which keeps track of successful and failed request for Gmap tiles
+	  @proxy_list = @proxies.map { |proxy_url| { :url => proxy_url, :success => 0, :failures => 0 } }
+	  
 		tiles = []
 		@zoom_range.each do |zoom| 
 			# build up array of arrays for all tile combos in structure [x,y,zoom]
@@ -44,89 +54,98 @@ class ImportGmapTiles
 		
 		SLogger.info "Zoom range including #{@zoom_range.to_a.join(',')} requires #{tiles.length} tiles"
 		
-		successfully_processed = 0
-		total_processed = 0
+		successful = skipped = failed = 0
+		
 		tiles.each do |tile|
+		  # get vars to use for the tile
 			x,y,zoom = tile
-			total_processed = total_processed.next
+			result = download_tile(x,y,zoom)
 			
-			successfully_processed = successfully_processed.next if download_tile(x,y,zoom)
+			successful, skipped, failed = result.successful+successful, result.skipped+skipped, result.failed+failed
+			log_to_proxy_download_success if result.successful == 1
+			log_to_proxy_download_failed if result.failed == 1
 			
-			if ( (successfully_processed+1) % @pause_after == 0 )
-				SLogger.info "\n---- Downloaded #{total_processed}/#{tiles.count} tiles (#{successfully_processed} successful, #{total_processed-successfully_processed} skipped/failed), pausing for #{@pause_for_seconds}s to maintain sensible throttle\n" 
+			if ( (successful+1) % @pause_after == 0 )
+				SLogger.info "\n---- Downloaded #{successful}/#{tiles.count} tiles successfully, #{skipped} skipped, #{failed} failed.  Pausing for #{@pause_for_seconds}s\n" 
 				sleep @pause_for_seconds
 			end
+			
+			if all_proxies_failed?
+			  summary = @proxy_list.map { |proxy| "#{proxy[:url].ljust(50)} => #{proxy[:success].thousands.rjust(5)} succeeded, #{proxy[:failures].thousands.rjust(5)} failed"}.join("\n")
+    	  SLogger.info "\n\n\n Done, no more proxies left\n\n\n#{summary}\n--------------\nFinal count: downloaded #{successful}/#{tiles.count} tiles successfully, #{skipped} skipped, #{failed} failed.  Pausing for #{@pause_for_seconds}s\n"
+    	  return
+    	end
 		end
 	end
-
+	
 	##
 	# Download the tile from Google and store locally if one does not already exist
-	# Returns true if a valid tile is downloaded
+	# Returns a result object comprised of successful, skipped or failed with values 0 or 1 (only one param can have 1)
 	def download_tile(x,y,zoom)
-		tile_name = replace_vars(AppConfig.gmap_file_path,x,y,zoom)
-		tile_url = replace_vars(AppConfig.gmap_remote_path,x,y,zoom)
+	  result = OpenStruct.new(:successful => 0, :skipped => 0, :failed => 0)
+	  
+		tile_name = replace_tile_vars(AppConfig.gmap_file_path,x,y,zoom)
+		tile_url = replace_tile_vars(AppConfig.gmap_remote_path,x,y,zoom)
 		tile_path = Rails.root.join('db',AppConfig.gmap_db_path,tile_name)
 		
 		if (File.exists?(tile_path))
 			SLogger.info "Skipping #{tile_name} as file already exists"
-			false
+			result.skipped = 1
 		else
 			if execute_wget(tile_url, tile_path)
 				SLogger.info "Downloaded #{tile_url} to #{tile_path}\n"
 			else
 				SLogger.warn "Failed to download #{tile_url} to #{tile_name}. Err: #{$?.inspect}\n"
 			end
-			is_image_valid_and_if_not_delete?(tile_path)
+			if is_image_valid_and_if_not_delete?(tile_path)
+			  result.successful = 1
+			else
+			  result.failed = 1
+			end
 		end
+		result
 	end
 	
 private
-	def replace_vars(str,x,y,zoom)
+  # used to replace variables used in the URL/path for tiles
+	def replace_tile_vars(str,x,y,zoom)
 		str.gsub(/\$x/, x.to_s).gsub(/\$y/, y.to_s).gsub(/\$z/, zoom.to_s)
 	end
 	
+	def all_proxies_failed? 
+	  !current_proxy
+	end
+	
+	def current_proxy
+	  @proxy_list[@proxy_index]
+	end
+	
 	def execute_wget(tile_url, tile_path)
-		url_with_proxy = get_url_with_proxy(tile_url)
-		cookie_path = Rails.root.join('db',AppConfig.gmap_db_path,"proxy_cookie.txt")
-		ignore_path = Rails.root.join('db',AppConfig.gmap_db_path,"temp.html")
-		proxy = @proxies[@proxy_index]
-		
-		# do a simple request to get the cookies if using a proxy
-		cookies = ""
-		if (proxy[:url])
-			File.delete(ignore_path) if File.exists?(ignore_path)
-			cookies = "--cookies=on --keep-session-cookies --save-cookies=\"#{cookie_path}\""
-			Kernel::system("wget -q #{cookies} --output-document=\"#{ignore_path}\" \"#{proxy[:url]}\"")
-			cookies = cookies.gsub(/--save-cookies/, "--load-cookies")
-		end
-		SLogger.info("GET #{url_with_proxy}")
-		Kernel::system("wget -nv #{cookies} --output-document=\"#{tile_path}\" \"#{url_with_proxy}\"")
+	  proxy_url = current_proxy[:url]
+	  encoded_tile_url = CGI.escape(tile_url)
+	
+		SLogger.info("GET #{proxy_url} with map from #{tile_url}")
+		Kernel::system("wget #{proxy_url}/includes/process.php?action=update --post-data=u=#{encoded_tile_url} --output-document=\"#{tile_path}\"")
 	end
 	
-	def get_url_with_proxy(url)
-		raise "Run out of proxies to use, can no longer download tiles unfortunately. \n\nStopping as no point continuing...." if @proxy_index >= @proxies.count
-		
-		# if there is a URL to use as a proxy then encode the URL and replace the $url parameter
-		if @proxies[@proxy_index][:url]
-			@proxies[@proxy_index][:url].sub( /\$url_no_protocol/i, CGI.escape(url.sub(/^\w+/i, "")) )
-			@proxies[@proxy_index][:url].sub( /\$url/i, CGI.escape(url) )
-		else
-			url
-		end
-	end
-	
-	def download_failed()
-		proxy = @proxies[@proxy_index]
-		if proxy
-			proxy[:failures] = proxy[:failures].next
-			SLogger.info "#{proxy[:failures]} errors now on proxy #{proxy[:url]}\n"
-			if proxy[:failures] >= @proxy_failure_max
-				@proxy_index = @proxy_index.next
-				SLogger.info "\n\nSwitching from proxy #{proxy[:url]} to #{@proxies[@proxy_index][:url]}\n\n" if @proxies[@proxy_index]
+	# log that the download has failed for this proxy
+	def log_to_proxy_download_failed()
+		if current_proxy
+			current_proxy[:failures] += 1
+			SLogger.info "#{current_proxy[:failures]} errors now on proxy #{current_proxy[:url]}\n"
+			if current_proxy[:failures] >= @proxy_failure_max
+				@proxy_index += 1
+				SLogger.info "\n\nSwitching to new proxy #{current_proxy[:url]}\n\n" if current_proxy
 			end
 		end
 	end
 	
+	# log that the download has succeeded for this proxy
+	def log_to_proxy_download_success()
+		current_proxy[:success] += 1 if current_proxy
+	end
+	
+	# returns true if image is valid (checks dimensions and file type)
 	def is_image_valid_and_if_not_delete?(image_path)
 		if File.exists?(image_path) && (File.size(image_path) > 0)
 			open(image_path) do |fh| 
@@ -136,6 +155,5 @@ private
 			end
 		end
 		File.delete(image_path)
-		download_failed
 	end
 end
