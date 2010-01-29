@@ -96,9 +96,11 @@ class ImportGmapTiles
 			else
 				SLogger.warn "Failed to download #{tile_url} to #{tile_name}. Err: #{$?.inspect}\n"
 			end
-			if is_image_valid_and_if_not_delete?(tile_path)
+			if is_image_valid?(tile_path)
 			  result.successful = 1
 			else
+			  SLogger.warn "Image is not invalid #{tile_url}"
+			  File.delete(tile_path) if File.exists?(tile_path)
 			  result.failed = 1
 			end
 		end
@@ -145,7 +147,7 @@ private
 	end
 	
 	# returns true if image is valid (checks dimensions and file type)
-	def is_image_valid_and_if_not_delete?(image_path)
+	def is_image_valid?(image_path)
 		if File.exists?(image_path) && (File.size(image_path) > 0)
 			open(image_path) do |fh| 
 				image = ImageSize.new(fh.read)
@@ -153,6 +155,5 @@ private
 				return true if (!image.width.blank? && (image.width == AppConfig.gmap_tile_size))
 			end
 		end
-		File.delete(image_path) if File.exists?(image_path)
 	end
 end
