@@ -15,25 +15,33 @@ class ImportGmapTiles
 		@pause_after = 20
 		@pause_for_seconds = 2
 		
-		# uses proxy list from here http://www.publicproxyservers.com/proxy/list_rating1.html
+		# uses proxy list from here http://www.publicproxyservers.com/proxy/list_avr_time1.html
 		#		test with this URL directly hitting Google http://mt2.google.com/vt/x=125&y=86&z=8
 		#   test using proxy and wget as follows
 		#     wget http://www.unblocktwitter.org/includes/process.php?action=update --post-data=u=http%3A%2F%2Fmt2.google.com%2Fvt%2Fx%3D125%26y%3D86%26z%3D8 --output-document=gmap_tile.png
 		
+		# build up list of supported proxy methods
+		@proxy_methods = [
+		  { :url => "/index.php", :post_data => "q={URL}&hl%5Binclude_form%5D=on&hl%5Baccept_cookies%5D=on&hl%5Bshow_images%5D=on&hl%5Bshow_referer%5D=on&hl%5Bbase64_encode%5D=on&hl%5Bstrip_meta%5D=on&hl%5Bsession_cookies%5D=on"},
+		  { :url => "/includes/process.php?action=update", :post_data => "u={URL}"},
+		]
+		
 		@proxy_index = 0
-		@proxy_failure_max = 5
+		@proxy_failure_max = 3 * @proxy_methods.length # we try X times for each proxy_method
 		@proxies = []
 		
 		# build up list of all proxy servers across 10 pages based on the ones with the best response times
 		SLogger.info "Getting list of proxies" do
-  		proxy_list_urls = (1..10).map { |id| "http://www.publicproxyservers.com/proxy/list_avr_time#{id}.html" } 
-  		proxy_list_urls.each do
-  		  # parse the HTML and put the links into proxies
-  		  Nokogiri::HTML.parse( open( proxy_list_urls[0] ) ).css("td.pthtdd a").each { |link| @proxies << link['href'] }
+  		proxy_list_urls = ( (1..10).map { |id| "http://www.publicproxyservers.com/proxy/list_avr_time#{id}.html" } )
+  		proxy_list_urls.each do |proxy|
+  		  # parse the HTML and put the links into proxies without trailing /
+  		  Nokogiri::HTML.parse( open( proxy ) ).css("td.pthtdd a").each { |link| @proxies << link['href'].gsub(/\/+$/, "") }
   		end
   	end
   	
-  	SLogger.info "Proxies found #{@proxies.count}\n\n"
+  	@proxies.uniq!.sort!
+  	
+  	SLogger.info "Unique proxies found #{@proxies.count}\n\n#{@proxies.join(',')}"
 	end
 	
 	##
@@ -129,9 +137,13 @@ private
 	def execute_wget(tile_url, tile_path)
 	  proxy_url = current_proxy[:url]
 	  encoded_tile_url = CGI.escape(tile_url)
-	
+	  
+	  # iterate through proxy methods for each failure
+	  proxy_method = @proxy_methods[@proxy_index % @proxy_methods.length]
+	  post_data = proxy_method[:post_data].gsub(/\{URL\}/, encoded_tile_url)
+	  
 		SLogger.info("GET #{proxy_url} with map from #{tile_url}")
-		Kernel::system("wget -q --post-data=u=#{encoded_tile_url} --output-document=\"#{tile_path}\" #{proxy_url}/includes/process.php?action=update")
+		Kernel::system("wget -q --post-data=\"#{post_data}\" --output-document=\"#{tile_path}\" #{proxy_url}#{proxy_method[:url]}")
 	end
 	
 	# log that the download has failed for this proxy
