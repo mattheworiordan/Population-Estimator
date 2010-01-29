@@ -35,11 +35,12 @@ class ImportGmapTiles
   		proxy_list_urls = ( (1..10).map { |id| "http://www.publicproxyservers.com/proxy/list_avr_time#{id}.html" } )
   		proxy_list_urls.each do |proxy|
   		  # parse the HTML and put the links into proxies without trailing /
-  		  Nokogiri::HTML.parse( open( proxy ) ).css("td.pthtdd a").each { |link| @proxies << link['href'].gsub(/\/+$/, "") }
+  		  Nokogiri::HTML.parse( open( proxy ) ).css("td.pthtdd a").each { |link| @proxies << link['href'].gsub(/\/+$/, ""); }
   		end
   	end
   	
-  	@proxies.uniq!.sort!
+  	# remove duplicates and put in alph order (pretty!)
+  	@proxies = @proxies.uniq.sort
   	
   	SLogger.info "Unique proxies found #{@proxies.count}\n\n#{@proxies.join(',')}"
 	end
