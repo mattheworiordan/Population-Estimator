@@ -58,16 +58,21 @@ class ImportGmapTiles
 		tiles.each do |tile|
 		  # get vars to use for the tile
 			x,y,zoom = tile
-			result = download_tile(x,y,zoom)
 			
-			successful, skipped, failed = result.successful+successful, result.skipped+skipped, result.failed+failed
-			log_to_proxy_download_success if result.successful == 1
-			log_to_proxy_download_failed if result.failed == 1
+			while ( !all_proxies_failed? )
+			  result = download_tile(x,y,zoom)
+  			successful, skipped, failed = result.successful+successful, result.skipped+skipped, result.failed+failed
+  			log_to_proxy_download_success if result.successful == 1
+  			log_to_proxy_download_failed if result.failed == 1
 			
-			if ( (successful+1) % @pause_after == 0 )
-				SLogger.info "---- Processed #{successful+skipped+failed}/#{tiles.count} tiles: #{successful} successful, #{skipped} skipped, #{failed} failed.  Pausing for #{@pause_for_seconds}s\n" 
-				sleep @pause_for_seconds
-			end
+  			if ( (successful+1) % @pause_after == 0 )
+  				SLogger.info "---- Processed #{successful+skipped+failed}/#{tiles.count} tiles: #{successful} successful, #{skipped} skipped, #{failed} failed.  Pausing for #{@pause_for_seconds}s\n" 
+  				sleep @pause_for_seconds
+  			end
+  			
+  			# retry with the next proxy if tile has failed
+  			break unless result.failed == 1
+  		end
 			
 			if all_proxies_failed?
 			  summary = @proxy_list.map { |proxy| "#{proxy[:url].ljust(50)} => #{proxy[:success].thousands.rjust(5)} succeeded, #{proxy[:failures].thousands.rjust(5)} failed"}.join("\n")
