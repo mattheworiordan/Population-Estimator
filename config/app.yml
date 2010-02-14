@@ -3,12 +3,21 @@ common: &common
   yahoo_api_key: vmp3df7V34F7vuDzFsuuyNMOP7LIFR9L8yK_eE_tfVbTYALA0B3SLFv4aWgf00wE3aLkCfCxag--
   multimap_api_key: OA10011316909631041
   verbose_logging: false
+  
   gmap_min_zoom: 0
   gmap_max_zoom: 8
   gmap_tile_size: 256
-  gmap_db_path: googlemaps
+  gmap_accuracy: 2 # height & width of area on google map tile to work out if land mass or water 
+  
+  gmap_db_path: google_maps
   gmap_file_path: tile_$z_$x_$y.png
   gmap_remote_path: http://mt0.google.com/vt/v=ap.116&hl=en-GB&x=$x&y=$y&z=$z
+  
+  land_mass_water_colour: 99b3cc
+  land_mass_water_colour_threshold: 0.2
+  land_mass_land_colour: green
+  land_mass_db_path: land_mass
+  land_mass_file_path: tile_$z.$px_$x_$y.png
   
 production:
   <<: *common
