@@ -1,6 +1,6 @@
 ##
 # Simultaneous logger, writes to STDOUT as well as standard Rails Logger
-# useful for debugging by looking at the console output
+# useful for debugging by looking at the console output whereas as standard Rails Logger logs to one or the other
 #
 # Can be used with a block to Benchmark
 

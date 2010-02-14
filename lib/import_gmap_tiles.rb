@@ -78,6 +78,8 @@ class ImportGmapTiles
   				SLogger.info "---- Processed #{successful+skipped+failed}/#{tiles.count} tiles: #{successful} successful, #{skipped} skipped, #{failed} failed.  Pausing for #{@pause_for_seconds}s\n" 
   				sleep @pause_for_seconds
   			end
+        # nice info for user if skipping 1,000s of tiles
+  			SLogger.info ".... skipping, skipped #{skipped} total" if ( (skipped) % 100 == 0 )
   			
   			# retry with the next proxy if tile has failed
   			break unless result.failed == 1
@@ -97,9 +99,8 @@ class ImportGmapTiles
 	def download_tile(x,y,zoom)
 	  result = OpenStruct.new(:successful => 0, :skipped => 0, :failed => 0)
 	  
-		tile_name = replace_tile_vars(AppConfig.gmap_file_path,x,y,zoom)
-		tile_url = replace_tile_vars(AppConfig.gmap_remote_path,x,y,zoom)
-		tile_path = Rails.root.join('db',AppConfig.gmap_db_path,tile_name)
+		tile_path = self.class.tile_path(x,y,zoom)
+		tile_url = self.class.replace_tile_vars(AppConfig.gmap_remote_path,x,y,zoom)
 		
 		if (File.exists?(tile_path))
 			# SLogger.info "Skipping #{tile_name} as file already exists"
@@ -121,12 +122,18 @@ class ImportGmapTiles
 		result
 	end
 	
-private
+  # TODO: Move Gmap tiles into a model set of classes i.e. replace_tile_vars should be part of a tiles model
+  
   # used to replace variables used in the URL/path for tiles
-	def replace_tile_vars(str,x,y,zoom)
+	def self.replace_tile_vars(str, x, y, zoom)
 		str.gsub(/\$x/, x.to_s).gsub(/\$y/, y.to_s).gsub(/\$z/, zoom.to_s)
 	end
 	
+	def self.tile_path(x, y, zoom)
+	   Rails.root.join('db',AppConfig.gmap_db_path,replace_tile_vars(AppConfig.gmap_file_path,x,y,zoom))
+	end
+
+private
 	def all_proxies_failed? 
 	  !current_proxy
 	end
