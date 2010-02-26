@@ -1,39 +1,13 @@
-%script{ :type=>"text/javascript", :src=>"http://www.google.com/jsapi?key=#{maps_api_key}" }
-:javascript
-  google.load("maps", "2.x");
-  google.load("jquery", "1.3.2");
+- content_for :javascript do
+  %script{ :type=>"text/javascript", :src=>"http://www.google.com/jsapi?key=#{maps_api_key}" }
+  :javascript
+    google.load("maps", "2.x");
 
-:javascript
-  $(document).ready(function() {
-    var map = new GMap2(document.getElementById('map'));
-    map.addControl(new GSmallMapControl());
-    
-    show_world = #{ (@map_rectangle.south == 0) && (@map_rectangle.latitude_centre == @map_rectangle.south) ? 'true' : 'false' };
-    place_to_show_on_map = { name: '#{@place.blank? ? '' : @place.name}' }
-    if (!show_world) {
-      var centre = new GLatLng(#{@map_rectangle.latitude_centre},#{@map_rectangle.longitude_centre});
-  
-      sw = new GLatLng(#{@map_rectangle.south},#{@map_rectangle.west});
-      ne = new GLatLng(#{@map_rectangle.north},#{@map_rectangle.east});
-      bounds = new GLatLngBounds(sw, ne);
-      zoom = Math.min(map.getBoundsZoomLevel(bounds), 9);
-      map.setCenter(centre, zoom);
-    
-      // icons source from http://www.visual-case.it/cgi-bin/vc/GMapsIcons.pl
-      opts = {
-        icon: new GIcon(G_DEFAULT_ICON, "http://maps.google.com/mapfiles/ms/micons/blue-pushpin.png"),
-        draggable: true,
-        bouncy: true
-      }
-      opts.icon.iconSize = new GSize(32, 32);
-      marker = new GMarker(centre, opts);
-      map.addOverlay(marker);
-      GEvent.addListener(marker, "dragend", function(){
-          map.panTo(marker.getLatLng());
-      });
-    } else {
+  :javascript
+    $(document).ready(function() {
+      var map = new GMap2($('#map').get(0));
+      map.addControl(new GSmallMapControl());
       map.setCenter( new GLatLng(0,0), 1);
-    }
-  });
+    });
 
 #map

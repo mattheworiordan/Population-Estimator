@@ -1,0 +1,32 @@
+#map_painter_gmap
+
+#map_painter_canvas
+
+#painter_tools_box
+  %a#paint_mode_toggle
+    Start Paint Mode
+  #painter_tools.hidden
+    .brushesHeading Brushes
+    %a#land 
+      Land Mass 
+    %br
+    %a#water 
+      Water
+    %br
+    %a#unknown 
+      Undiscovered
+    #paint_info
+      Map Info
+      %ul
+        %li 
+          Map size: 
+          %span#map_size 0
+          px
+        %li 
+          Map centre:
+          %span#map_centre 0:0
+        %li 
+          Map bounds:
+          %span#map_bounds 0:0 - 0:0
+    
+  

@@ -1,3 +1,5 @@
+- search_target = { :controller => 'places', :country_id => @country.country_code, :action => 'search'}
+
 =render :partial => 'countries/google_map'
 
 %ul
@@ -5,15 +7,22 @@
     =link_to("World", countries_path)
     %ul
       %li 
-        =link_to(name_with_info(@country), @country)
-        - if @place 
-          - render_parents_and_self(@place) do 
-            %ul
-              - @children.each do |child| 
-                %li
-                  =link_to(name_with_info(child), country_place_path(@country, child))
-        - else
-          %ul 
-            - @children.each do |child| 
-              %li
-                =link_to(name_with_info(child), country_place_path(@country, child))
+        Country: 
+        =link_to_remote(name_with_info(@country), :url => { :action => "show", :controller => "countries", :id => @country.country_code }, :update => "results_list_container", :method => :get)
+        
+        - form_remote_tag(:url => search_target, :method => "get", :update => 'results_list_container') do   
+          = label :search, :place_name, "Search for place within country " 
+          = text_field :search, :place_name
+          = submit_tag "Search", :id => "filter_submit", :name => "submit", :class => "search"
+          
+          / monitor for changes and update search results immediately
+          = observe_field 'search_place_name', :url => search_target, :method => "get", :frequency => 0.5, :update => 'results_list_container', :with => 'search[place_name]'
+
+        #results_list_container            
+          =render :partial => 'places/places_list'
+          
+
+/ hide the filter button if user has javascript          
+- content_for :javascript do
+  :javascript
+    $(document).ready (function() { $('#filter_submit').css('display','none'); });

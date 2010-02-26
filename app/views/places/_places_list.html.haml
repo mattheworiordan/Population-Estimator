@@ -1,0 +1,33 @@
+- if !@places_filter.blank?
+  / User has done a search
+  #results_list
+    - if !@filtered_places.blank?
+      Places containing "#{h @places_filter}"
+      %ul
+        - @filtered_places.each do |place| 
+          %li
+            =link_to_remote(name_with_info(place), :url => country_place_path(@country, place), :method => :get, :update => 'results_list_container')
+    - else
+      %p
+        No places found matching those keywords
+
+    - if @flash_results
+      :javascript
+        #{ visual_effect :highlight, 'results_list' }
+    
+- elsif @place
+  / User is viewing a single place  
+  - render_parents_and_self(@place) do 
+    %ul
+      - @children.each do |child| 
+        %li
+          =link_to_remote(name_with_info(child), :url => country_place_path(@country, child), :method => :get, :update => 'results_list_container')
+          
+- else
+  / User is viewing a base country, no place selected, we are showing root level places
+  %ul 
+    - @children.each do |child| 
+      %li
+        =link_to_remote(name_with_info(child), :url => country_place_path(@country, child), :method => :get, :update => 'results_list_container')
+
+= zoom_map_to_rect(@map_rectangle)      

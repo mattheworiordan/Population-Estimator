@@ -7,8 +7,13 @@ class PlaceTest < ActiveSupport::TestCase
   end
   
   test "creation of new place" do
-    place = Place.new(:name => "Imanigary place", :country_id => @gb.country_code, :population => 1, :place_type => PlaceType::State)
+    place = Place.new(:name => "Imaginary place", :country_id => @gb.country_code, :population => 1, :place_type => PlaceType::State)
     assert(place.save, "Place was not saved correctly: #{place.errors.full_messages.to_sentence}")
+  end
+  
+  test "named scopes" do
+    assert(Place.name_containing_text('erpo').first == places(:liverpool), "Named scope search on name field not matching")
+    assert(Place.name_containing_text('england').first != places(:liverpool), "Named scope search on name field is matching incorrectly")
   end
   
   test "creation of new place with missing fields" do
@@ -101,7 +106,7 @@ class PlaceTest < ActiveSupport::TestCase
     assert(wales.save, "Lat & long are valid so Wales should be able to be saved #{wales.errors.full_messages.to_sentence}")
   end
   
-  test "latitude and longitude rectangl functions" do
+  test "latitude and longitude rectangle functions" do
     england = places(:england)
     england_rectangle = england.lat_long_rectangle_with_descendents
     assert_not_nil(england_rectangle)

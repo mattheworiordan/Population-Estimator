@@ -13,6 +13,7 @@ class Place < ActiveRecord::Base
   named_scope :cities_and_boroughs, { :conditions => { :place_type => [PlaceType::City, PlaceType::Borough] } }
   named_scope :counties_cities_and_boroughs, { :conditions => { :place_type => [PlaceType::City, PlaceType::Borough, PlaceType::County] } }
   named_scope :without_lat_long, { :conditions => "latitude is null OR longitude is null"}
+  named_scope :name_containing_text, lambda { |text| { :conditions => [ "places.name LIKE ?", "%#{text}%"] } }
   
   # override default finders to make them case insensitive
   def self.find_by_name (*args) find(:first, { :conditions => [ "places.name like ?", args[0] ] }, *args.from(1)); end
@@ -23,7 +24,7 @@ class Place < ActiveRecord::Base
   #
   # *Note on lat/longs*
   # latitudes: go north (higher) to south (lower)
-  # longitudes: go east (lower) to west (higher)
+  # longitudes: go east (higher) to west (lower)
   #
   def self.lat_long_rectangle_with_descendents(country, place = nil)
     raise ArgumentError, "Cannot determine longitude and latitude box if Country is missing or not a Country object" if (country.blank? || !country.instance_of?(Country)) 

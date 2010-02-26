@@ -1,0 +1,21 @@
+#results_list
+  - if !@countries.blank?
+    %ul#country_list
+      - @countries.each do |country| 
+        %li 
+          =link_to("#{country.name} #{country.country_code}, #{country.population.thousands} people, #{country.density_per_sq_km} p/sq/km", country) unless country.country_code.blank?
+          ="#{country.name}, population: #{country.population.thousands}, density p/sq/km: #{country.density_per_sq_km}" if country.country_code.blank?
+      
+    - if (@map_rectangle.south != 0) || (@map_rectangle.latitude_centre != @map_rectangle.south)
+      -# place_to_show_on_map = { name: '#{@place.blank? ? '' : @place.name}' }
+      = zoom_map_to_rect(@map_rectangle)
+    - else
+      = zoom_map_out_to_world
+  - else
+    %p
+      No countries found matching those keywords
+    = zoom_map_out_to_world
+
+- if @flash_results
+  :javascript
+    #{ visual_effect :highlight, 'results_list' }

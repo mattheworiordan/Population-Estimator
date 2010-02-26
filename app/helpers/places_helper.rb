@@ -17,13 +17,13 @@ module PlacesHelper
     haml_tag :ul do
       if (parents.blank?)
         haml_tag :li do
-          haml_concat link_to(name_with_info(current_place), country_place_path(@country, current_place), :class => 'selected') 
+          haml_concat link_to_remote(name_with_info(current_place), :url => country_place_path(@country, current_place), :class => 'selected', :method => :get, :update => 'results_list_container') 
           yield
         end
       else
         parents.each do |place,children|
           haml_tag :li do
-            haml_concat link_to(name_with_info(place), country_place_path(@country, place))
+            haml_concat link_to_remote(name_with_info(place), :url => country_place_path(@country, place), :method => :get, :update => 'results_list_container')
             render_parents children, current_place, &block
           end
         end

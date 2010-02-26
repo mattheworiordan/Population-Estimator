@@ -1,10 +1,18 @@
+- search_target = { :action => "search" }
+
 =render :partial => 'countries/google_map'
 
-%h1 Select a country
+- form_remote_tag(:url => search_target, :method => "get", :update => 'results_list_container') do   
+  
+  %h1 Countries
+  = label :search, :country_name, "Filter by" 
+  = text_field :search, :country_name
+  = submit_tag "Search", :id => "filter_submit", :name => "submit", :class => "search"
+  = observe_field 'search_country_name', :url => search_target, :method => "get", :frequency => 0.5, :update => 'results_list_container', :with => 'search[country_name]'
 
-%ul
-  - @countries.each do |country| 
-    %td 
-      %li 
-        =link_to("#{country.name} #{country.country_code}, #{country.population.thousands} people, #{country.density_per_sq_km} p/sq/km", country) unless country.country_code.blank?
-        ="#{country.name}, population: #{country.population.thousands}, density p/sq/km: #{country.density_per_sq_km}" if country.country_code.blank?
+#results_list_container
+  =render :partial => 'country_list'
+
+- content_for :javascript do
+  :javascript
+    $(document).ready (function() { $('#filter_submit').css('display','none'); });
