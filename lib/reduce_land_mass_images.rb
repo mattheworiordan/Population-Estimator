@@ -113,7 +113,7 @@ class ReduceLandMassImages
   def get_tiles
     tiles = []
     accuracy_pixels_config = AppConfig.gmap_accuracy
-    (1...AppConfig.gmap_max_zoom).reverse_each do |zoom|
+    (0...AppConfig.gmap_max_zoom).reverse_each do |zoom|
       tiles_across = 2**zoom
       # the accuracy will go down by half at each zoom level with a floor of 1 i.e. 8 => 4, 7 => 2, 6 => 1, 5 => 1, 4 => 1
       accuracy_pixels = (accuracy_pixels_config.to_f / 2**(AppConfig.gmap_max_zoom - zoom).to_f ).ceil
