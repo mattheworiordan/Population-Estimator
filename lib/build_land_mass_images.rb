@@ -27,7 +27,7 @@ class BuildLandMassImages
     get_tile_pairs.each do |pair|
       x, y, zoom = pair
       tiles_processed += 1 if build_land_mass_image(x, y, zoom, overwrite)
-      SLogger.info("Update, processed #{tiles_across} items") if (tiles_processed % tiles_across == tiles_across-1)
+      SLogger.info("Update on progress, processed #{tiles_across} more items") if (tiles_processed % tiles_across == tiles_across-1)
       break if (!tiles_limit.nil? && tiles_limit <= tiles_processed)
     end
     
@@ -37,14 +37,14 @@ class BuildLandMassImages
   # Build land mass image from Google Map image
   # Returns true if image created 
   def build_land_mass_image(x, y, zoom, overwrite = false)
-    land_mass_tile_path = self.class.tile_path(x, y, zoom, @accuracy_pixels)
+    land_mass_tile_path = LandMassTile.tile_path(x, y, zoom, @accuracy_pixels)
     
     # exit if file already exists
     return false if (!overwrite && File.exists?(land_mass_tile_path))
     
     begin
       # load the tile image
-      tile = Magick::Image.read(ImportGmapTiles.tile_path(x,y,zoom)).first
+      tile = Magick::Image.read(GmapTile.tile_path(x,y,zoom)).first
 
       # set up a new blank tile for writing
       tile_height_pixels = @tile_size/@accuracy_pixels
@@ -82,16 +82,6 @@ class BuildLandMassImages
   def get_tile_pairs
     tiles_across = 2**AppConfig.gmap_max_zoom
     (0...tiles_across).map { |x| (0...tiles_across).map { |y| [x, y, AppConfig.gmap_max_zoom] } }.flatten(1)
-  end
-  
-  class << self
-    def replace_tile_vars(str, x, y, zoom, accuracy_pixels)
-  		str.gsub(/\$x/, x.to_s).gsub(/\$y/, y.to_s).gsub(/\$z/, zoom.to_s).gsub(/\$px/, accuracy_pixels.to_s)
-  	end
-	
-  	def tile_path(x, y, zoom, accuracy_pixels)
-  	   Rails.root.join('db', AppConfig.land_mass_db_path, replace_tile_vars(AppConfig.land_mass_file_path, x, y, zoom, accuracy_pixels))
-  	end
   end
 end
 
