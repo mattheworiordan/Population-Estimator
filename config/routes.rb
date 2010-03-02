@@ -4,6 +4,10 @@ ActionController::Routing::Routes.draw do |map|
   end
   map.resources :countries, :has_many => [ :places ], :collection => { :search => :get }
   
+  map.with_options :controller => 'land_mass_tile' do |tile|
+    tile.view '/tiles/landmass/:x/:y/:zoom.png', :action => 'view'
+  end
+  
   map.namespace :admin do |admin|
     admin.resources :earth_masses_painter
   end
