@@ -26,19 +26,19 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 # end
 
 # acts_as_tree
-gem 'ancestry', :require_as => 'ancestry'
+gem 'ancestry', :require => 'ancestry'
 
 # time parsing
-gem 'chronic', :require_as => 'chronic'
+gem 'chronic', :require => 'chronic'
 
 # HPricot successor
-gem 'nokogiri', :require_as => 'nokogiri'
+gem 'nokogiri', :require => 'nokogiri'
 
 # error loggin
 gem 'exceptional', '>= 2.0.0'
 
 # geocode resolution
 gem 'happymapper'
-gem 'graticule', :require_as => 'graticule'
+gem 'graticule', :require => 'graticule'
 
-gem 'imagesize', :require_as => 'image_size'
+gem 'imagesize', :require => 'image_size'
