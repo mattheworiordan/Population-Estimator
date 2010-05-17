@@ -3,7 +3,7 @@ class Country < ActiveRecord::Base
   validates_uniqueness_of :name
   has_many :places
   
-  named_scope :with_country_code, { :conditions => [ "country_code IS NOT NULL" ] } 
+  scope :with_country_code, { :conditions => [ "country_code IS NOT NULL" ] } 
   
   # override standard country_code search and make this case insensitive
   def self.find_by_country_code(country_code)

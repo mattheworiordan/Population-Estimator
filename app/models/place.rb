@@ -5,15 +5,15 @@ class Place < ActiveRecord::Base
   validates_presence_of :name, :population, :country_id, :place_type
   validates_numericality_of :latitude, :longitude, :unless => Proc.new { |place| place.latitude.nil? && place.longitude.nil? }
   
-  named_scope :in_country_code, lambda { |country_code| { :include => [ :country ], :conditions => [ "countries.country_code LIKE ?", country_code ] } }
-  named_scope :states, { :conditions => { :place_type => PlaceType::State } } 
-  named_scope :counties, { :conditions => { :place_type => PlaceType::County } } 
-  named_scope :cities, { :conditions => { :place_type => PlaceType::City } } 
-  named_scope :boroughs, { :conditions => { :place_type => PlaceType::Borough } } 
-  named_scope :cities_and_boroughs, { :conditions => { :place_type => [PlaceType::City, PlaceType::Borough] } }
-  named_scope :counties_cities_and_boroughs, { :conditions => { :place_type => [PlaceType::City, PlaceType::Borough, PlaceType::County] } }
-  named_scope :without_lat_long, { :conditions => "latitude is null OR longitude is null"}
-  named_scope :name_containing_text, lambda { |text| { :conditions => [ "places.name LIKE ?", "%#{text}%"] } }
+  scope :in_country_code, lambda { |country_code| { :include => [ :country ], :conditions => [ "countries.country_code LIKE ?", country_code ] } }
+  scope :states, { :conditions => { :place_type => PlaceType::State } } 
+  scope :counties, { :conditions => { :place_type => PlaceType::County } } 
+  scope :cities, { :conditions => { :place_type => PlaceType::City } } 
+  scope :boroughs, { :conditions => { :place_type => PlaceType::Borough } } 
+  scope :cities_and_boroughs, { :conditions => { :place_type => [PlaceType::City, PlaceType::Borough] } }
+  scope :counties_cities_and_boroughs, { :conditions => { :place_type => [PlaceType::City, PlaceType::Borough, PlaceType::County] } }
+  scope :without_lat_long, { :conditions => "latitude is null OR longitude is null"}
+  scope :name_containing_text, lambda { |text| { :conditions => [ "places.name LIKE ?", "%#{text}%"] } }
   
   # override default finders to make them case insensitive
   def self.find_by_name (*args) find(:first, { :conditions => [ "places.name like ?", args[0] ] }, *args.from(1)); end
