@@ -1,6 +1,6 @@
 require 'skynet'
-require 'build_land_mass_images'
-require 'slogger'
+require 'lib/build_land_mass_images'
+require 'lib/slogger'
 
 # TODO: Build Land Mass Images using MapReduce needs to be refactored as I am using MapReduce as a threaded job processing system which it is not.  It therefore times out.
 

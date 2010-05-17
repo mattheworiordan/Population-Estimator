@@ -10,9 +10,9 @@ require 'ostruct'
 require 'open-uri'
 
 # custom libraries
-require 'number_formatter'
-require 'slogger'
-require 'geocode_places'
+require 'lib/number_formatter'
+require 'lib/slogger'
+require 'lib/geocode_places'
 
 module PopulationEstimator
   class Application < Rails::Application

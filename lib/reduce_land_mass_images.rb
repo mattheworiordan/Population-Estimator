@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'RMagick'
 require 'ostruct'
-require 'import_gmap_tiles'
+require 'lib/import_gmap_tiles'
 
 class ReduceLandMassImages
   def initialize()
