@@ -25,10 +25,20 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 #   gem 'webrat'
 # end
 
-gem 'ancestry'
-gem 'chronic'
-gem 'nokogiri'
-gem 'exceptional','>= 2.0.0'
+# acts_as_tree
+gem 'ancestry', :require_as => 'ancestry'
+
+# time parsing
+gem 'chronic', :require_as => 'chronic'
+
+# HPricot successor
+gem 'nokogiri', :require_as => 'nokogiri'
+
+# error loggin
+gem 'exceptional', '>= 2.0.0'
+
+# geocode resolution
 gem 'happymapper'
-gem 'graticule'
-gem 'imagesize'
+gem 'graticule', :require_as => 'graticule'
+
+gem 'imagesize', :require_as => 'image_size'
