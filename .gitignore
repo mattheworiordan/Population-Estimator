@@ -1,7 +1,8 @@
-log/*
+.bundle
 db/*.sqlite3
 db/google_maps/*
 db/land_mass/*
-tmp/*
 skynet.log
+log/*.log
+tmp/**/*
 *.tmproj
