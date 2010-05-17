@@ -4,3 +4,4 @@ db/google_maps/*
 db/land_mass/*
 tmp/*
 skynet.log
+*.tmproj
