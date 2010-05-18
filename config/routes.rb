@@ -69,6 +69,5 @@ PopulationEstimator::Application.routes.draw do |map|
   end
 
   match '/' => 'countries#index'
-  match '/:controller(/:action(/:id))'
-
+  # match '/:controller(/:action(/:id))'
 end
