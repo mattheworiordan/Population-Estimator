@@ -45,6 +45,6 @@ gem 'imagesize', :require => 'image_size'
 
 gem 'rmagick', '>= 2.0.0'
 
-gem 'skynet'
+gem 'skynet', :require => 'skynet'
 
 gem 'haml'
