@@ -7,3 +7,5 @@ log/*.log
 log/*.txt
 tmp/**/*
 *.tmproj
+vendor/bundle/*
+vendor/cache/*
