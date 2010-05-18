@@ -1,5 +1,5 @@
-require 'import_places.rb'
-load "#{RAILS_ROOT}/config/environment.rb"
+require 'lib/import_places.rb'
+load "#{Rails.root}/config/environment.rb"
 
 ##
 # Allows import of any country with country code i.e. rake import:gb

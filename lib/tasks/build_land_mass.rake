@@ -1,6 +1,6 @@
-require 'build_land_mass_images'
-require 'build_land_mass_images_mapreduce'
-load "#{RAILS_ROOT}/config/environment.rb"
+require 'lib/build_land_mass_images'
+require 'lib/build_land_mass_images_mapreduce'
+load "#{Rails.root}/config/environment.rb"
 
 ##
 # Allows import of any country with country code i.e. rake import:gb
