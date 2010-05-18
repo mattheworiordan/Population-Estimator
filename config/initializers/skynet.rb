@@ -1,1 +1,1 @@
-require RAILS_ROOT+'/config/skynet_config.rb'
+require "#{Rails.root}/config/skynet_config.rb"
