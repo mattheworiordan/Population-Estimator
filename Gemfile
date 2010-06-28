@@ -47,4 +47,4 @@ gem 'rmagick', '>= 2.0.0'
 
 gem 'skynet', :require => 'skynet'
 
-gem 'haml'
+gem 'haml', '>= 3.0.4'

@@ -7,7 +7,7 @@ dependencies:
   haml: 
     group: 
     - :default
-    version: ">= 0"
+    version: ">= 3.0.4"
   sqlite3-ruby: 
     group: 
     - :default
@@ -151,7 +151,7 @@ specs:
     version: 0.9.3
 - sqlite3-ruby: 
     version: 1.2.5
-hash: 6e3332ecf1717d333685c03f04348344513e2199
+hash: 8dddb53d81fa4520a8904b2b53606385e3e073f0
 sources: 
 - Rubygems: 
     uri: http://rubygems.org
