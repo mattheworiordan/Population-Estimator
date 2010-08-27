@@ -6,6 +6,6 @@ skynet.log
 log/*.log
 log/*.txt
 tmp/**/*
-*.tmproj
+population_estimator.tmproj
 vendor/bundle/*
 vendor/cache/*
