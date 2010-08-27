@@ -6,7 +6,7 @@
       %ul
         - @filtered_places.each do |place| 
           %li
-            =link_to(name_with_info(place), :url => country_place_path(@country, place), :method => :get, :update => 'results_list_container', :remote => true)
+            =link_to name_with_info(place), country_place_path(@country, place), :method => :get, :update => 'results_list_container', :remote => true
     - else
       %p
         No places found matching those keywords
@@ -21,13 +21,13 @@
     %ul
       - @children.each do |child| 
         %li
-          =link_to(name_with_info(child), :url => country_place_path(@country, child), :method => :get, :update => 'results_list_container', :remote => true)
+          =link_to name_with_info(child), country_place_path(@country, child), :method => :get, :update => 'results_list_container', :remote => true
           
 - else
   / User is viewing a base country, no place selected, we are showing root level places
   %ul 
     - @children.each do |child| 
       %li
-        =link_to(name_with_info(child), :url => country_place_path(@country, child), :method => :get, :update => 'results_list_container', :remote => true)
+        =link_to name_with_info(child), country_place_path(@country, child), :method => :get, :update => 'results_list_container', :remote => true
 
 = zoom_map_to_rect(@map_rectangle)      

@@ -61,6 +61,7 @@ PopulationEstimator::Application.routes.draw do |map|
     collection do
       get :search
     end
+    resources :places
   end
 
   match '/tiles/landmass/:x/:y/:zoom.png' => 'land_mass_tile#view', :as => :view
