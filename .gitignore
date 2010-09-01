@@ -3,9 +3,10 @@ db/*.sqlite3
 db/google_maps/*
 db/land_mass/*
 skynet.log
-log/*.log
-log/*.txt
-tmp/**/*
 population_estimator.tmproj
 vendor/bundle/*
 vendor/cache/*
+log/*.log
+log/*.txt
+tmp/**/*
+*.tmproj
