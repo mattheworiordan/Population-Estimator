@@ -48,7 +48,9 @@ function SetupMap(id, map_canvas)
 {
   var map = new google.maps.Map(map_canvas, { zoom: 1, center: new google.maps.LatLng(0, 0), mapTypeId: google.maps.MapTypeId.ROADMAP } );
   map_refs[id] = map;
-  
+
+  SetupMapStyles(map);
+
   var overlayControlDiv = document.createElement('DIV');
   var overlayControl = new OverlayControl(overlayControlDiv, map);
 
@@ -56,8 +58,104 @@ function SetupMap(id, map_canvas)
   map.controls[google.maps.ControlPosition.TOP_RIGHT].push(overlayControlDiv);
 }
 
-function OverlayControl(controlDiv, map) {
+function SetupMapStyles(map)
+{
+  var stylez = [
+    {
+      featureType: "administrative",
+      elementType: "all",
+      stylers: [
+        { visibility: 'off' }
+      ]
+    },
+    {
+      featureType: "poi",
+      elementType: "all",
+      stylers: [
+        { visibility: 'off' }
+      ]
+    },
+    {
+      featureType: "road",
+      elementType: "all",
+      stylers: [
+        { visibility: 'off' }
+      ]
+    },
+    {
+      featureType: "transit",
+      elementType: "all",
+      stylers: [
+        { visibility: 'off' }
+      ]
+    },
+    {
+      featureType: "landscape",
+      elementType: "all",
+      stylers: [
+        { hue: '#00FF00' }
+      ]
+    },
+    {
+      featureType: "water",
+      elementType: "labels",
+      stylers: [
+        { visibility: 'off' }
+      ]
+    }
+  ];
 
+  var styledMapOptions = {
+      name: "without_features"
+  }
+  var noFeaturesMapType = new google.maps.StyledMapType(stylez, styledMapOptions);
+  map.mapTypes.set('without_features', noFeaturesMapType);
+
+  // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map
+  var controlDiv = document.createElement('DIV');
+  controlDiv.style.padding = '5px';
+
+  // Set CSS for the control border
+  var controlUI = document.createElement('DIV');
+  controlUI.style.backgroundColor = 'white';
+  controlUI.style.borderStyle = 'solid';
+  controlUI.style.borderWidth = '2px';
+  controlUI.style.cursor = 'pointer';
+  controlUI.style.textAlign = 'center';
+  controlUI.title = 'Hide Features';
+  controlDiv.appendChild(controlUI);
+
+  // Set CSS for the control interior
+  var controlText = document.createElement('DIV');
+  controlText.style.fontFamily = 'Arial,sans-serif';
+  controlText.style.fontSize = '12px';
+  controlText.style.paddingLeft = '4px';
+  controlText.style.paddingRight = '4px';
+  controlText.innerHTML = 'Hide Features';
+  controlUI.appendChild(controlText);
+
+  // Setup the click event listeners:
+  google.maps.event.addDomListener(controlUI, 'click', function() {
+    featuresVisible = controlText.innerHTML.indexOf('Hide') == 0;
+
+    if (featuresVisible)
+    {
+      // hide
+      map.setMapTypeId('without_features');
+      controlText.innerHTML = 'Show Features';
+    } else {
+      // show
+      map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+      controlText.innerHTML = 'Hide Features';
+    }
+  });
+
+  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
+}
+
+function OverlayControl(controlDiv, map) {
   // Set CSS styles for the DIV containing the control
   // Setting padding to 5 px will offset the control
   // from the edge of the map
@@ -82,11 +180,10 @@ function OverlayControl(controlDiv, map) {
   controlText.innerHTML = 'Show Land Mass Overlay';
   controlUI.appendChild(controlText);
 
-  // Setup the click event listeners: simply set the map to
-  // Chicago
+  // Setup the click event listeners:
   google.maps.event.addDomListener(controlUI, 'click', function() {
     overlayVisible = controlText.innerHTML.indexOf('Hide') == 0;
-    
+
     if (overlayVisible)
     {
       // hide
