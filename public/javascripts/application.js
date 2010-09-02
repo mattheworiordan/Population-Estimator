@@ -91,9 +91,11 @@ function SetupMapStyles(map)
     },
     {
       featureType: "landscape",
-      elementType: "all",
+      elementType: "geometry",
       stylers: [
-        { hue: '#00FF00' }
+        {
+          lightness: -100
+        }
       ]
     },
     {
