@@ -19,3 +19,4 @@
 # TODO: Look at duplicates of data, and remove duplicates, build rules around siblings / parents with same lat/long
 # TODO: Use google maps API to get the land masses http://maps.google.com/maps/api/staticmap?center=53.814165,-3.0535135&zoom=16&size=1000x1000&maptype=roadmap&sensor=false&key=ABQIAAAAzr2EBOXUKnm_jVnk0OJI7xSsTL4WIgxhMZ0ZK_kHjwHeQuOD4xQJpBVbSrqNn69S6DOTv203MQ5ufA
 # TODO: Use Devon & Cornwall for sample tests
+# TODO: Add image clean up after import from Google in case a file did not download properly
