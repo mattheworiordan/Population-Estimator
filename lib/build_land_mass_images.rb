@@ -1,8 +1,7 @@
-require 'rubygems'
 require 'RMagick'
 require 'ostruct'
-require 'lib/map_area_colour'
-require 'lib/import_gmap_tiles'
+require './lib/map_area_colour'
+require './lib/import_gmap_tiles'
 
 class BuildLandMassImages
   def initialize()
