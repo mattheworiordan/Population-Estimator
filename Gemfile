@@ -1,32 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.0.0.rc2'
-
-# Bundle edge Rails instead:
-# gem 'rails', :git => 'git://github.com/rails/rails.git'
-
-gem 'sqlite3-ruby', :require => 'sqlite3'
-
-# Use unicorn as the web server
-# gem 'unicorn'
-
-# Deploy with Capistrano
-# gem 'capistrano'
-
-# Bundle the extra gems:
-# gem 'bj'
-# gem 'nokogiri', '1.4.1'
-gem 'sqlite3-ruby', :require => 'sqlite3'
-# gem 'aws-s3', :require => 'aws/s3'
-
-# Bundle gems for certain environments:
-# gem 'rspec', :group => :test
-# group :test do
-#   gem 'webrat'
-# end
-
-# acts_as_tree
-gem 'ancestry', :require => 'ancestry'
+gem 'rails', '3.0.0'
 
 # time parsing
 gem 'chronic', :require => 'chronic'
@@ -34,17 +8,22 @@ gem 'chronic', :require => 'chronic'
 # HPricot successor
 gem 'nokogiri', :require => 'nokogiri'
 
-# error loggin
+# error logging
 gem 'exceptional', '>= 2.0.0'
 
 # geocode resolution
 gem 'happymapper'
 gem 'graticule', :require => 'graticule'
 
-gem 'imagesize', :require => 'image_size'
-
 gem 'rmagick', '>= 2.0.0'
 
-gem 'skynet', :require => 'skynet'
-
 gem 'haml', '>= 3.0.4'
+
+gem 'sqlite3-ruby', :require => 'sqlite3'
+# gem 'aws-s3', :require => 'aws/s3'
+
+gem 'imagesize', :git => 'git://github.com/mattheworiordan/imagesize.git', :require => 'image_size'
+
+# acts_as_tree
+# gem 'ancestry', :require => 'ancestry'
+gem 'ancestry', :git => 'git://github.com/mattheworiordan/ancestry.git'
