@@ -1,6 +1,12 @@
-require 'image_size'
+require 'thread'
+require 'monitor'
+require './app/models/gmap_tile' # strange problem where this class is not loaded correctly by ActiveSupport
 
-##
+class Monitor
+  alias lock mon_enter
+  alias unlock mon_exit
+end
+
 # ImportGmapTiles uses proxy servers to retrieve all the Google Map tile images from their servers
 #
 # As Google restricts google map queries to around 1,000 per day, the use of public proxies is required
@@ -12,8 +18,9 @@ require 'image_size'
 class ImportGmapTiles
   def initialize()
     @zoom_range = (AppConfig.gmap_min_zoom..AppConfig.gmap_max_zoom).to_a
-    @pause_after = 20
-    @pause_for_seconds = 2
+    @report_after = 20
+    @max_threads = 5
+    @thread_timeout = 60
 
     # uses proxy list from here http://www.publicproxyservers.com/proxy/list_avr_time1.html
     #   test with this URL directly hitting Google http://mt2.google.com/vt/x=125&y=86&z=8
@@ -62,59 +69,99 @@ class ImportGmapTiles
 
     SLogger.info "Zoom range including #{@zoom_range.to_a.join(',')} requires #{tiles.length} tiles"
 
-    successful = skipped = failed = 0
+    @successful = @skipped = @failed = 0
+    @lock = Monitor.new
+    Thread.abort_on_exception = true
 
     tiles.each do |tile|
       # get vars to use for the tile
       x,y,zoom = tile
 
-      while ( !all_proxies_failed? )
-        result = download_tile(x,y,zoom)
-        successful, skipped, failed = result.successful+successful, result.skipped+skipped, result.failed+failed
-        log_to_proxy_download_success if result.successful == 1
-        log_to_proxy_download_failed if result.failed == 1
-
-        if ( (successful+1) % @pause_after == 0 )
-          SLogger.info "---- Processed #{successful+skipped+failed}/#{tiles.count} tiles: #{successful} successful, #{skipped} skipped, #{failed} failed.  Pausing for #{@pause_for_seconds}s\n"
-          sleep @pause_for_seconds
-        end
-        # nice info for user if skipping 1,000s of tiles
-        SLogger.info ".... skipping, skipped #{skipped} total" if ( (skipped) % 100 == 0 )
-
-        # retry with the next proxy if tile has failed
-        break unless result.failed == 1
-      end
+      queue_download_tile x, y, zoom, tiles.count
 
       if all_proxies_failed?
         summary = @proxy_list.map { |proxy| "#{proxy[:url].ljust(50)} => #{proxy[:success].thousands.rjust(5)} succeeded, #{proxy[:failures].thousands.rjust(5)} failed"}.join("\n")
-        SLogger.info "\n\n\n Done, no more proxies left\n\n\n#{summary}\n--------------\nProcessed #{tiles.count} tiles: #{successful} successful, #{skipped} skipped, #{failed} failed."
-        return
+        SLogger.info "\n\n\n Done, no more proxies left\n\n\n#{summary}\n--------------\nProcessed #{tiles.count} tiles: #{@successful} successful, #{@skipped} skipped, #{@failed} failed."
+        break
       end
+    end
+
+    if (Thread.list.count > 0)
+      SLogger.info "\n\n\n Waiting on #{Thread.list.count} final thread(s) to join"
+      Thread.list.each do |thr|
+        thr.join(120) if (thr != Thread.current) # final try, 120 seconds
+      end
+    end
+  end
+
+  def queue_download_tile(x,y,zoom,tile_count)
+    until Thread.list.count < @max_threads
+      Thread.list.each do |thr|
+        if (thr.key?(:started_at)) && (thr[:started_at] + @thread_timeout.seconds < Time.now)
+          SLogger.info "\n\n\!!! Killing thread #{thr} because it's timed out"
+          file_to_delete = nil
+          if thr.key?(:tile_path)
+            SLogger.info "!!! And deleting file #{thr[:tile_path]}"
+            file_to_delete = thr[:tile_path]
+          end
+          Thread.kill thr
+          File.delete(file_to_delete) if !file_to_delete.blank? && File.exists?(file_to_delete)
+          @lock.synchronize do
+            log_to_proxy_download_failed
+          end
+        end
+      end
+      sleep 0.05
+    end
+
+    thr = Thread.new do
+      Thread.current[:started_at] = Time.now
+      download_tile_start x, y, zoom, tile_count
+    end
+  end
+
+  def download_tile_start(x, y, zoom, tile_count)
+    while ( !all_proxies_failed? )
+      result = download_tile(x, y, zoom)
+      @lock.synchronize do
+        @successful, @skipped, @failed = result.successful + @successful, result.skipped + @skipped, result.failed + @failed
+        log_to_proxy_download_success if result.successful == 1
+        log_to_proxy_download_failed if result.failed == 1
+        
+        if ( (@successful+1) % @report_after == 0 )
+          SLogger.info "---- Processed #{@successful+@skipped+@failed}/#{tile_count} tiles: #{@successful} successful, #{@skipped} skipped, #{@failed} failed.\n"
+        end
+        # nice info for user if skipping 1,000s of tiles
+        SLogger.info ".... now skipped #{@skipped} total" if ( (@successful + @skipped + @failed) % 100 == 0 )
+      end
+
+      # retry with the next proxy if tile has failed
+      break unless result.failed == 1
     end
   end
 
   ##
   # Download the tile from Google and store locally if one does not already exist
   # Returns a result object comprised of successful, skipped or failed with values 0 or 1 (only one param can have 1)
-  def download_tile(x,y,zoom)
+  def download_tile(x, y, zoom)
     result = OpenStruct.new(:successful => 0, :skipped => 0, :failed => 0)
 
     tile_path = GmapTile.tile_path(x,y,zoom)
     tile_url = GmapTile.replace_tile_vars(AppConfig.gmap_remote_path,x,y,zoom)
 
     if (File.exists?(tile_path))
-      # SLogger.info "Skipping #{tile_name} as file already exists"
       result.skipped = 1
     else
+      Thread.current[:tile_path] = tile_path # allow clean up of file if thread is killed
       if execute_wget(tile_url, tile_path)
-        SLogger.info "Downloaded #{tile_url} to #{tile_path}\n"
+        SLogger.info "Downloaded #{tile_path}\n"
       else
-        SLogger.warn "Failed to download #{tile_url} to #{tile_name}. Err: #{$?.inspect}\n"
+        SLogger.warn "Failed to download #{tile_url} to #{tile_path}. Err: #{$?.inspect}\n"
       end
       if is_image_valid?(tile_path)
         result.successful = 1
       else
-        SLogger.warn "Image is not invalid #{tile_url}"
+        SLogger.warn "!! Image is not valid #{tile_path}"
         File.delete(tile_path) if File.exists?(tile_path)
         result.failed = 1
       end
@@ -134,20 +181,24 @@ private
   end
 
   def execute_wget(tile_url, tile_path)
-    proxy_url = current_proxy[:url]
-    encoded_tile_url = CGI.escape(tile_url)
+    if !current_proxy.blank? # ensure proxy is still around as multi-threaded
+      proxy_url = current_proxy[:url]
+      encoded_tile_url = CGI.escape(tile_url)
 
-    # iterate through proxy methods for each failure
-    proxy_method = @proxy_methods[@proxy_index % @proxy_methods.length]
-    post_data = proxy_method[:post_data].gsub(/\{URL\}/, encoded_tile_url)
+      # iterate through proxy methods for each failure
+      proxy_method = @proxy_methods[@proxy_index % @proxy_methods.length]
+      post_data = proxy_method[:post_data].gsub(/\{URL\}/, encoded_tile_url)
 
-    SLogger.info("GET #{proxy_url} with map from #{tile_url}")
-    Kernel::system("wget -q --post-data=\"#{post_data}\" --output-document=\"#{tile_path}\" #{proxy_url}#{proxy_method[:url]}")
+      SLogger.info("GET #{proxy_url} with map #{tile_url[/(x=\d+&y=\d+&z=\d+)/]}")
+      Kernel::system("wget -q --post-data=\"#{post_data}\" --output-document=\"#{tile_path}\" #{proxy_url}#{proxy_method[:url]}")
+    else
+      false
+    end
   end
 
   # log that the download has failed for this proxy
   def log_to_proxy_download_failed()
-    if current_proxy
+    if !current_proxy.blank?
       current_proxy[:failures] += 1
       SLogger.info "#{current_proxy[:failures]} errors now on proxy #{current_proxy[:url]}\n"
       if current_proxy[:failures] >= @proxy_failure_max
@@ -165,7 +216,7 @@ private
   # returns true if image is valid (checks dimensions and file type)
   def is_image_valid?(image_path)
     if File.exists?(image_path) && (File.size(image_path) > 0)
-      open(image_path) do |fh|
+      open(image_path, "rb") do |fh|
         image = ImageSize.new(fh.read)
         # if image width is not nil, then this is a valid image
         return true if (!image.width.blank? && (image.width == AppConfig.gmap_tile_size))
