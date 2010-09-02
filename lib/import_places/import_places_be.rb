@@ -1,3 +1,4 @@
+# encoding: UTF-8
 class ImportPlacesBe
   
   include ImportPlacesModule
