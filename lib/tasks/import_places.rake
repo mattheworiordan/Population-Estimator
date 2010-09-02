@@ -1,4 +1,4 @@
-require 'lib/import_places.rb'
+require './lib/import_places.rb'
 load "#{Rails.root}/config/environment.rb"
 
 ##
